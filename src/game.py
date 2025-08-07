@@ -4,6 +4,7 @@ import random
 import queue
 import signal
 import threading
+import json
 from typing import Dict, List, Tuple
 
 
@@ -71,7 +72,7 @@ class Deck:
 
 
 class Game:
-    def __init__(self, max_players: int = 4, turn_timeout: int = 30):
+    def __init__(self, max_players: int = 4, turn_timeout: int = 90):
         self.max_players = max_players
         self.turn_timeout = turn_timeout
         self.player_conns: Dict[int, 'socket.socket'] = {}
@@ -108,43 +109,39 @@ class Game:
             conn.sendall(self._serialize(msg))
         self._stop_event.set()
 
-    def _play_turn(self) -> None:
-        pid = self.current_turn
-        conn = self.player_conns[pid]
-        # Notify turn
-        conn.sendall(self._serialize({"type": "TURN", "payload": {"player": pid}}))
+    def _play_turn(self):
+        current_player_id = self.current_turn
+        current_conn = self.player_conns[current_player_id]
+        # Notify current player
+        self._broadcast_event({"event": "turn", "player": current_player_id})
+
         try:
             player_id, msg = self.action_queue.get(timeout=self.turn_timeout)
-        except queue.Empty:
-            # Timeout: automatic draw
-            card = self.deck.draw(1)
-            if card:
-                self.hands[pid].append(card[0])
-                event = {"event": "draw", "player": pid, "card": str(card[0])}
-                self.action_queue.task_done()
-                self._broadcast_event(event)
-        else:
-            if player_id != pid:
-                # Not this player's turn: ignore
-                return
-            action = msg.get("action")
-            if action == "JUEGO":
-                color = msg.get("color")
-                value = msg.get("value")
-                card = Card(color, value)
-                self._play_card(pid, card)
-            elif action == "DIBUJA":
-                card_drawn = self.deck.draw(1)
-                if card_drawn:
-                    self.hands[pid].append(card_drawn[0])
-                    event = {"event": "draw", "player": pid, "card": str(card_drawn[0])}
-                    self._broadcast_event(event)
-        # After action or timeout, send updates
-        for p, conn in self.player_conns.items():
-            conn.sendall(self._make_update(p))
-        # Next turn
-        self.current_turn = (self.current_turn % self.max_players) + 1
+            self.action_queue.task_done()
 
+            if player_id != current_player_id:
+                current_conn.sendall(self._serialize({"type": "ERROR", "payload": "No es tu turno."}))
+                return
+
+            if msg["action"] == "JUEGO":
+                # Parse card from msg
+                card = Card(msg["color"], msg["value"])
+                self._play_card(current_player_id, card)
+            elif msg["action"] == "DIBUJA":
+                self.draw(current_player_id)
+
+        except queue.Empty:
+            self._broadcast_event({"event": "timeout", "player": current_player_id})
+            self.draw(current_player_id)
+
+        # Advance turn
+        self.current_turn = self._next_player_id()
+
+    def _next_player_id(self):
+        # Returns the next player ID in round-robin order
+        ids = sorted(self.player_conns.keys())
+        idx = ids.index(self.current_turn)
+        return ids[(idx + 1) % len(ids)]
     def handle_action(self, player_id: int, msg: Dict) -> None:
         # Called by ClientHandler threads
         self.action_queue.put((player_id, msg))

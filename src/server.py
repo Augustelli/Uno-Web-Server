@@ -64,11 +64,13 @@ def start_server(port=8000, max_players=4, turn_timeout=30):
     while player_id <= max_players:
         conn, addr = sock.accept()
         print(f"Jugador {player_id} conectado desde {addr}")
+        print(f"Faltante de jugadores: {max_players - player_id} para comenzar la partida.")
         game.add_player(player_id, conn)
         handler = ClientHandler(conn, addr, player_id, game, send_pipe)
         handler.start()
         player_id += 1
 
+    print("Todos los jugadores conectados. Iniciando partida...")
     # Iniciar partida
     game.start_game()
 
@@ -77,7 +79,6 @@ def start_server(port=8000, max_players=4, turn_timeout=30):
 
     # Cerrar server
     sock.close()
-    parent_conn.close()
     logger_proc.join()
     print("Servidor finalizado.")
 

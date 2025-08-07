@@ -1,7 +1,7 @@
 import socket
 import threading
 import sys
-from src.utils import validate_command, serialize_message, deserialize_message
+from utils import validate_command, serialize_message, deserialize_message
 
 class Client:
     def __init__(self, host, port):
