@@ -1,8 +1,5 @@
 import random
-from typing import List, Optional
-import random
 import queue
-import signal
 import threading
 import json
 from typing import Dict, List, Tuple
@@ -40,6 +37,7 @@ class Deck:
     """
     Mazo de cartas UNO: 4 colores x 10 valores = 40 cartas.
     """
+
     def __init__(self):
         self.cards: List[Card] = []
         self._build_deck()
@@ -91,8 +89,10 @@ class Game:
     def start_game(self) -> None:
         # Prepare deck and hands
         self.deck.shuffle()
+        print("Mazo barajado.")
         for pid in self.player_conns:
             self.hands[pid] = self.deck.draw(7)
+            print(f"Jugador {pid} recibe 7 cartas.")
         # Initialize discard pile
         top_card = self.deck.draw(1)
         if top_card:
@@ -110,6 +110,7 @@ class Game:
         self._stop_event.set()
 
     def _play_turn(self):
+        print(f"Jugando turno del jugador {self.current_turn} conn {self.player_conns[self.current_turn]}")
         current_player_id = self.current_turn
         current_conn = self.player_conns[current_player_id]
         # Notify current player
@@ -126,13 +127,13 @@ class Game:
             if msg["action"] == "JUEGO":
                 # Parse card from msg
                 card = Card(msg["color"], msg["value"])
+                print(f"Jugador {current_player_id} juega: {card}")
                 self._play_card(current_player_id, card)
             elif msg["action"] == "DIBUJA":
-                self.draw(current_player_id)
+                self.deck.draw(current_player_id)
 
         except queue.Empty:
             self._broadcast_event({"event": "timeout", "player": current_player_id})
-            self.draw(current_player_id)
 
         # Advance turn
         self.current_turn = self._next_player_id()
@@ -142,6 +143,7 @@ class Game:
         ids = sorted(self.player_conns.keys())
         idx = ids.index(self.current_turn)
         return ids[(idx + 1) % len(ids)]
+
     def handle_action(self, player_id: int, msg: Dict) -> None:
         # Called by ClientHandler threads
         self.action_queue.put((player_id, msg))
@@ -169,14 +171,26 @@ class Game:
             event = {"event": "play", "player": pid, "card": str(card)}
             self._broadcast_event(event)
         else:
-            # Invalid: ignore or optionally notify
+            # Logic for invalid play
             pass
 
+
+    # def _broadcast_event(self, event: Dict) -> None:
+    #     disconnected = []
+    #     for pid, conn in self.player_conns.items():
+    #         try:
+    #             conn.sendall(self._serialize({"type": "RESULT", "payload": event}))
+    #         except OSError:
+    #             print(f"Player {pid} disconnected.")
+    #             disconnected.append(pid)
+    #     for pid in disconnected:
+    #         self.player_conns.pop(pid)
+
     def _broadcast_event(self, event: Dict) -> None:
-        # Send to logger via pipe: placeholder; actual pipe push elsewhere
-        # and broadcast to clients
-        for conn in self.player_conns.values():
+        for pid, conn in self.player_conns.items():
+            print(f"Broadcasting event: {event}")
             conn.sendall(self._serialize({"type": "RESULT", "payload": event}))
+
 
     def _make_update(self, pid: int) -> bytes:
         payload = {

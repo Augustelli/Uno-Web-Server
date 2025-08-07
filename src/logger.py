@@ -1,6 +1,5 @@
 import os
 import signal
-import sys
 import json
 from datetime import datetime
 
