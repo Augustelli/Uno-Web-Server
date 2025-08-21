@@ -128,11 +128,10 @@ class Game:
                     continue
 
                 if msg["action"] == "JUEGO":
-                    # Parse card from msg
                     card = Card(msg["color"], msg["value"])
                     print(f"Jugador {current_player_id} juega: {card}")
-                    self._play_card(current_player_id, card)
-                    break  # Turn ends after playing a card
+                    valid_play = self._play_card(current_player_id, card)
+                    break
                 elif msg["action"] == "LEVANTAR":
                     if not has_drawn:
                         drawn_cards = self.deck.draw(1)
@@ -194,7 +193,7 @@ class Game:
                 return True
         return False
 
-    def _play_card(self, pid: int, card: Card) -> None:
+    def _play_card(self, pid: int, card: Card) -> bool:
         # Validate
         top = self.discard_pile[-1]
         if card.color == top.color or card.value == top.value:
@@ -203,20 +202,16 @@ class Game:
             self.discard_pile.append(card)
             event = {"event": "play", "player": pid, "card": str(card)}
             self._broadcast_event(event)
+            return True
         else:
-            # Logic for invalid play
-            pass
-
-    # def _broadcast_event(self, event: Dict) -> None:
-    #     disconnected = []
-    #     for pid, conn in self.player_conns.items():
-    #         try:
-    #             conn.sendall(self._serialize({"type": "RESULT", "payload": event}))
-    #         except OSError:
-    #             print(f"Player {pid} disconnected.")
-    #             disconnected.append(pid)
-    #     for pid in disconnected:
-    #         self.player_conns.pop(pid)
+            # Invalid play - player loses turn
+            conn = self.player_conns[pid]
+            error_msg = {
+                "type": "ERROR",
+                "payload": f"Carta inválida. Pierdes el turno. Top: {top}, Jugaste: {card}"
+            }
+            conn.sendall(self._serialize(error_msg))
+            return False
 
     def _broadcast_event(self, event: Dict) -> None:
         for pid, conn in self.player_conns.items():

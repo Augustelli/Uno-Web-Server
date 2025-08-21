@@ -54,3 +54,4 @@
 2025-08-21T16:39:11.830506 | {"event": "command", "player": 1, "command": {"action": "DIBUJA"}}
 2025-08-21T16:39:46.726669 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "ROJO", "value": "5"}}
 2025-08-21T16:42:40.358889 | {"event": "command", "player": 1, "command": {"action": "DIBUJA"}}
+2025-08-21T16:53:53.593955 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "ROJO", "value": "1"}}
