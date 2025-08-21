@@ -110,30 +110,53 @@ class Game:
         self._stop_event.set()
 
     def _play_turn(self):
-        print(f"Jugando turno del jugador {self.current_turn} conn {self.player_conns[self.current_turn]}")
+        print(f"Jugando turno del jugador {self.current_turn}.")
         current_player_id = self.current_turn
         current_conn = self.player_conns[current_player_id]
+        has_drawn = False
+
         # Notify current player
         self._broadcast_event({"event": "turn", "player": current_player_id})
 
-        try:
-            player_id, msg = self.action_queue.get(timeout=self.turn_timeout)
-            self.action_queue.task_done()
+        while True:  # Allow multiple actions per turn
+            try:
+                player_id, msg = self.action_queue.get(timeout=self.turn_timeout)
+                self.action_queue.task_done()
 
-            if player_id != current_player_id:
-                current_conn.sendall(self._serialize({"type": "ERROR", "payload": "No es tu turno."}))
-                return
+                if player_id != current_player_id:
+                    current_conn.sendall(self._serialize({"type": "ERROR", "payload": "No es tu turno."}))
+                    continue
 
-            if msg["action"] == "JUEGO":
-                # Parse card from msg
-                card = Card(msg["color"], msg["value"])
-                print(f"Jugador {current_player_id} juega: {card}")
-                self._play_card(current_player_id, card)
-            elif msg["action"] == "DIBUJA":
-                self.deck.draw(current_player_id)
-
-        except queue.Empty:
-            self._broadcast_event({"event": "timeout", "player": current_player_id})
+                if msg["action"] == "JUEGO":
+                    # Parse card from msg
+                    card = Card(msg["color"], msg["value"])
+                    print(f"Jugador {current_player_id} juega: {card}")
+                    self._play_card(current_player_id, card)
+                    break  # Turn ends after playing a card
+                elif msg["action"] == "LEVANTAR":
+                    if not has_drawn:
+                        drawn_cards = self.deck.draw(1)
+                        if drawn_cards:
+                            self.hands[current_player_id].extend(drawn_cards)
+                            has_drawn = True
+                            print(f"Jugador {current_player_id} levanta 1 carta")
+                            # Send updated hand to player
+                            current_conn.sendall(self._make_update(current_player_id))
+                    else:
+                        current_conn.sendall(
+                            self._serialize({"type": "ERROR", "payload": "Ya levantaste una carta este turno."}))
+                elif msg["action"] == "PASAR":
+                    if has_drawn:
+                        print(f"Jugador {current_player_id} pasa el turno")
+                        break
+                    else:
+                        current_conn.sendall(
+                            self._serialize({"type": "ERROR", "payload": "Debes levantar una carta antes de pasar."}))
+                else:
+                    current_conn.sendall(self._serialize({"type": "ERROR", "payload": "Acción desconocida."}))
+            except queue.Empty:
+                self._broadcast_event({"event": "timeout", "player": current_player_id})
+                break
 
         # Advance turn
         self.current_turn = self._next_player_id()
@@ -174,7 +197,6 @@ class Game:
             # Logic for invalid play
             pass
 
-
     # def _broadcast_event(self, event: Dict) -> None:
     #     disconnected = []
     #     for pid, conn in self.player_conns.items():
@@ -190,7 +212,6 @@ class Game:
         for pid, conn in self.player_conns.items():
             print(f"Broadcasting event: {event}")
             conn.sendall(self._serialize({"type": "RESULT", "payload": event}))
-
 
     def _make_update(self, pid: int) -> bytes:
         payload = {

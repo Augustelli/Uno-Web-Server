@@ -2,3 +2,4 @@
 .venv/
 logs/
 .idea/workspace.xml
+.env

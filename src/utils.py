@@ -5,6 +5,8 @@ from typing import Dict, Any
 # Regex patterns for commands
 game_pattern = re.compile(r"^JUEGO\s+(ROJO|VERDE|AZUL|AMARILLO)\s+([0-9])$")
 draw_pattern = re.compile(r"^DIBUJA$")
+draw_card_pattern = re.compile(r"^LEVANTAR$")
+pass_turn_pattern = re.compile(r"^PASAR$")
 
 
 def validate_command(cmd: str) -> Dict[str, Any]:
@@ -22,6 +24,10 @@ def validate_command(cmd: str) -> Dict[str, Any]:
         return {"action": "JUEGO", "color": color, "value": value}
     if draw_pattern.match(cmd):
         return {"action": "DIBUJA"}
+    if draw_card_pattern.match(cmd):
+        return {"action": "LEVANTAR"}
+    if pass_turn_pattern.match(cmd):
+        return {"action": "PASAR"}
     raise ValueError(f"Comando inválido: {cmd}")
 
 

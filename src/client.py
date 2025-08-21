@@ -36,10 +36,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     client = Client(args.host, args.port)
-    print("Conectado al servidor de UNO. Ingresa comandos: 'JUEGO <COLOR> <VALOR>' o 'DIBUJA'.")
+    print("Conectado al servidor de UNO. Ingresa comandos: 'JUEGO <COLOR> <VALOR>' o 'DIBUJA' o 'LEVANTAR' para recoger una carta o 'PASAR' para pasar tu turno.\n")
     while True:
         try:
-            cmd = input('> ')
+            cmd = input('-> ')
             client.send(cmd)
         except KeyboardInterrupt:
             print("Desconectando...")
