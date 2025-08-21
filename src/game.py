@@ -152,6 +152,16 @@ class Game:
                     else:
                         current_conn.sendall(
                             self._serialize({"type": "ERROR", "payload": "Debes levantar una carta antes de pasar."}))
+                elif msg["action"] == "DIBUJA":
+                    hand_msg = {
+                        "type": "HAND",
+                        "payload": {
+                            "cards": [str(c) for c in self.hands[current_player_id]],
+                            "count": len(self.hands[current_player_id]),
+                            "top": str(self.discard_pile[-1])
+                        }
+                    }
+                    current_conn.sendall(self._serialize(hand_msg))
                 else:
                     current_conn.sendall(self._serialize({"type": "ERROR", "payload": "Acción desconocida."}))
             except queue.Empty:
