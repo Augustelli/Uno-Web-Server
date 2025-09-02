@@ -1,8 +1,24 @@
+import socket
+import sys
+import os
+import uuid
+from multiprocessing import Pipe, Process  # TODO agregar logger
+from utils import deserialize_message, serialize_message
+from logger import logger_process
+from dotenv import load_dotenv
 import random
 import queue
 import threading
 import json
 from typing import Dict, List, Tuple
+from utils import deserialize_message, serialize_message  # Make sure this is imported
+
+load_dotenv()
+
+HOST = os.environ.get("HOST", "localhost")
+PORT = int(os.environ.get("PORT", 8090))
+MAX_PLAYERS = int(os.environ.get("MAX_PLAYERS", 2))
+TURN_TIMEOUT = int(os.environ.get("TURN_TIMEOUT", 300))
 
 
 class Card:
@@ -71,6 +87,7 @@ class Deck:
 
 class Game:
     def __init__(self, max_players: int = 4, turn_timeout: int = 90):
+
         self.max_players = max_players
         self.turn_timeout = turn_timeout
         self.player_conns: Dict[int, 'socket.socket'] = {}
@@ -81,6 +98,7 @@ class Game:
         self.action_queue: queue.Queue[Tuple[int, Dict]] = queue.Queue()
         self.winner: int = 0
         self._stop_event = threading.Event()
+        self.lock = threading.Lock()
 
     def add_player(self, player_id: int, conn) -> None:
         self.player_conns[player_id] = conn
@@ -105,8 +123,8 @@ class Game:
             self._play_turn()
         # Game ended, announce
         for pid, conn in self.player_conns.items():
-            msg = {"type": "END", "payload": {"winner": self.winner}}
-            conn.sendall(self._serialize(msg))
+            msg = serialize_message({"type": "END", "payload": {"winner": self.winner}})
+            conn.sendall(msg.encode('utf-8'))
         self._stop_event.set()
 
     def _play_turn(self):
@@ -140,10 +158,18 @@ class Game:
                             has_drawn = True
                             print(f"Jugador {current_player_id} levanta 1 carta")
                             # Send updated hand to player
-                            current_conn.sendall(self._make_update(current_player_id))
+                            card_msg = serialize_message({
+                                "type": "CARD_DRAWN",
+                                "payload": {
+                                    "card": str(drawn_cards[0]),
+                                    "hand": [str(c) for c in self.hands[current_player_id]]
+                                }
+                            })
+                            current_conn.sendall(card_msg.encode('utf-8'))
                     else:
                         current_conn.sendall(
-                            self._serialize({"type": "ERROR", "payload": "Ya levantaste una carta este turno."}))
+                            serialize_message(
+                                {"type": "ERROR", "payload": "Ya levantaste una carta este turno."}).encode('utf-8'))
                 elif msg["action"] == "PASAR":
                     if has_drawn:
                         print(f"Jugador {current_player_id} pasa el turno")
@@ -206,26 +232,35 @@ class Game:
         else:
             # Invalid play - player loses turn
             conn = self.player_conns[pid]
-            error_msg = {
+            error_msg = serialize_message({
                 "type": "ERROR",
                 "payload": f"Carta inválida. Pierdes el turno. Top: {top}, Jugaste: {card}"
-            }
-            conn.sendall(self._serialize(error_msg))
+            })
+            conn.sendall(error_msg.encode('utf-8'))
             return False
 
     def _broadcast_event(self, event: Dict) -> None:
         for pid, conn in self.player_conns.items():
             print(f"Broadcasting event: {event}")
-            conn.sendall(self._serialize({"type": "RESULT", "payload": event}))
+            msg = serialize_message({"type": "RESULT", "payload": event})
+            conn.sendall(msg.encode('utf-8'))
 
     def _make_update(self, pid: int) -> bytes:
         payload = {
             "hand": [str(c) for c in self.hands[pid]],
-            "top": str(self.discard_pile[-1]),
-            "current_turn": self.current_turn
+            "top": str(self.discard_pile[-1]) if self.discard_pile else "No card",
+            "current_turn": self.current_turn,
+            "players": list(self.player_conns.keys())  # Add player list
         }
-        return self._serialize({"type": "UPDATE", "payload": payload})
+        return serialize_message({"type": "UPDATE", "payload": payload}).encode('utf-8')
+
+    def remove_player(self, player_id: int) -> None:
+        """Remove a player from the game"""
+        if player_id in self.player_conns:
+            del self.player_conns[player_id]
+        if player_id in self.hands:
+            del self.hands[player_id]
 
     @staticmethod
     def _serialize(msg: Dict) -> bytes:
-        return (json.dumps(msg) + "\n").encode('utf-8')
+        return serialize_message(msg).encode('utf-8')  # Use the utils function instead

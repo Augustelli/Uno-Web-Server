@@ -2,7 +2,10 @@ import socket
 import threading
 import sys
 import os
+import uuid
 from multiprocessing import Pipe, Process
+from typing import Any
+
 from utils import deserialize_message, serialize_message
 from game import Game
 from logger import logger_process
@@ -16,36 +19,273 @@ MAX_PLAYERS = int(os.environ.get("MAX_PLAYERS", 2))
 TURN_TIMEOUT = int(os.environ.get("TURN_TIMEOUT", 300))
 
 
+class GameManager:
+    def __init__(self, max_players, turn_timeout):
+        self.games = {}  # game_id -> Game instance
+        self.waiting_games = {}  # game_id -> Game instance (games waiting for players)
+        self.player_to_game = {}  # player_conn -> game_id
+        self.max_players = max_players
+        self.turn_timeout = turn_timeout
+        self.lock = threading.Lock()
+
+    def create_game(self):
+        """Create a new game and return its ID"""
+        with self.lock:
+            game_id = str(uuid.uuid4())[:8]  # Short UUID
+            game = Game(max_players=self.max_players, turn_timeout=self.turn_timeout)
+            self.waiting_games[game_id] = game
+            print(f"Created new game: {game_id}")
+            return game_id, game
+
+    def join_game(self, msg):
+        """Join a specific game by ID"""
+        game_id = msg.get("game_id")  # Specific game ID required
+
+        if not game_id:
+            error_msg = serialize_message({
+                "type": "ERROR",
+                "payload": "Game ID required for JOIN action"
+            })
+            self.conn.sendall(error_msg.encode("utf-8"))
+            return
+
+        # Try to join specific game
+        with self.game_manager.lock:
+            if game_id in self.game_manager.waiting_games:
+                self.game = self.game_manager.waiting_games[game_id]
+                if len(self.game.player_conns) < self.game_manager.max_players:
+                    self.game_id = game_id
+                else:
+                    self.game = None
+
+        if not self.game:
+            error_msg = serialize_message({
+                "type": "ERROR",
+                "payload": "Game not found or full"
+            })
+            self.conn.sendall(error_msg.encode("utf-8"))
+            return
+
+        # Add player to game
+        self.player_id = max(self.game.player_conns.keys(), default=0) + 1
+        self.game.add_player(self.player_id, self.conn)
+
+        # Send join confirmation
+        join_msg = serialize_message({
+            "type": "JOINED",
+            "payload": {
+                "game_id": self.game_id,
+                "player_id": self.player_id,
+                "players_needed": self.game_manager.max_players - len(self.game.player_conns)
+            }
+        })
+        self.conn.sendall(join_msg.encode("utf-8"))
+        print(f"Player {self.player_id} joined game {self.game_id}")
+
+        # Start game if full
+        if len(self.game.player_conns) == self.game_manager.max_players:
+            self.game_manager.start_game(self.game_id)
+
+    def start_game(self, game_id):
+        """Move game from waiting to active games"""
+        with self.lock:
+            if game_id in self.waiting_games:
+                game = self.waiting_games.pop(game_id)
+                self.games[game_id] = game
+                game.start_game()
+                print(f"Started game: {game_id}")
+
+    def remove_game(self, game_id):
+        """Remove finished game"""
+        with self.lock:
+            self.games.pop(game_id, None)
+            self.waiting_games.pop(game_id, None)
+            print(f"Removed game: {game_id}")
+
+    def list_games(self):
+        """List all available games"""
+        with self.lock:
+            games_list = []
+            for game_id, game in self.waiting_games.items():
+                games_list.append({
+                    "game_id": game_id,
+                    "players": len(game.player_conns),
+                    "max_players": self.max_players,
+                    "slots_available": self.max_players - len(game.player_conns)
+                })
+            return games_list
+
+
 class ClientHandler(threading.Thread):
-    def __init__(self, conn, addr, player_id, game, send_pipe):
+    def __init__(self, conn, addr, game_manager, send_pipe):
         super().__init__(daemon=True)
         self.conn = conn
         self.addr = addr
-        self.player_id = player_id
-        self.game = game
+        self.game_manager = game_manager
         self.send_pipe = send_pipe
+        self.game_id = None
+        self.player_id = None
+        self.game = None
 
     def run(self):
         try:
-            while True:
+            # Wait for initial command
+            data = self.conn.recv(1024)
+            if not data:
+                return
+
+            msg = deserialize_message(data)
+            action = msg.get("action")
+
+            if action == "LIST_GAMES":
+                self.list_games()
+                # Wait for next command after listing games
                 data = self.conn.recv(1024)
                 if not data:
-                    break
-                print(f"Data recibido del jugador {self.player_id}: {data} TYPE {type(data)}")
+                    return
                 msg = deserialize_message(data)
-                self.send_pipe.send({'event': 'command', 'player': self.player_id, 'command': msg})
-                response = self.game.handle_action(self.player_id, msg)
-                updates = self.game.get_update(self.player_id)
+                action = msg.get("action")
 
-                # Fix: Send messages with newline delimiter
-                for p_conn in self.game.player_conns.values():
-                    message = serialize_message(updates) + "\n"
-                    p_conn.sendall(message.encode("utf-8"))
+            elif action == "CREATE_GAME":
+                self.create_new_game()
+            elif action == "JOIN":
+                self.join_game(msg)
+            else:
+                error_msg = serialize_message({
+                    "type": "ERROR",
+                    "payload": "Esperado LIST_GAMES, CREATE_GAME, o JOIN"
+                })
+                self.conn.sendall(error_msg.encode("utf-8"))
+                return
+
+            if self.game and self.player_id:
+                while True:
+                    data = self.conn.recv(1024)
+                    if not data:
+                        break
+                    msg = deserialize_message(data)
+                    self.send_pipe.send({
+                        'event': 'command',
+                        'player': self.player_id,
+                        'command': msg,
+                        'game_id': self.game_id
+                    })
+
+                    self.game.handle_action(self.player_id, msg)
 
         except Exception as e:
-            print(f"Error cliente {self.player_id}: {e}", file=sys.stderr)
+            print(f"Error cliente {self.addr}: {e}", file=sys.stderr)
         finally:
+            if self.game and self.player_id:
+                # Remove player from game
+                self.game.remove_player(self.player_id)
+                # Check if game should be removed
+                with self.game.lock:
+                    if len(self.game.player_conns) == 0:
+                        self.game_manager.remove_game(self.game_id)
             self.conn.close()
+
+    def join_game(self, msg: dict[str, Any]):
+        game_id = msg.get("game_id")  # Optional specific game ID
+        self.game_id, self.game = self.game_manager.join_game(game_id)
+
+        if not self.game:
+            error_msg = serialize_message({
+                "type": "ERROR",
+                "payload": "Game not found or full"
+            })
+            self.conn.sendall(error_msg.encode("utf-8"))
+            return
+
+        # Add player to game - Fix player ID assignment
+        with self.game.lock:
+            self.player_id = max(self.game.player_conns.keys(), default=0) + 1
+            self.game.add_player(self.player_id, self.conn)
+
+        # Send join confirmation
+        join_msg = serialize_message({
+            "type": "JOINED",
+            "payload": {
+                "game_id": self.game_id,
+                "player_id": self.player_id,
+                "players_needed": self.game_manager.max_players - len(self.game.player_conns)
+            }
+        })
+        self.conn.sendall(join_msg.encode("utf-8"))
+
+        print(f"Player {self.player_id} joined game {self.game_id}")
+
+        # Start game if full
+        if len(self.game.player_conns) == self.game_manager.max_players:
+            self.game_manager.start_game(self.game_id)
+
+        # Handle game commands
+        while True:
+            data = self.conn.recv(1024)
+            if not data:
+                break
+
+            msg = deserialize_message(data)
+
+            # Log command
+            self.send_pipe.send({
+                'event': 'command',
+                'player': self.player_id,
+                'command': msg,
+                'game_id': self.game_id
+            })
+
+            # Handle action through game - this is thread-safe now
+            self.game.handle_action(self.player_id, msg)
+
+    def create_new_game(self):
+        """Create a new game and add player to it"""
+        try:
+            # Create new game
+            self.game_id, self.game = self.game_manager.create_game()
+
+            # Add player to the new game
+            self.player_id = 1  # Creator is always player 1
+            self.game.add_player(self.player_id, self.conn)
+
+            # Send creation confirmation
+            join_msg = serialize_message({
+                "type": "GAME_CREATED",
+                "payload": {
+                    "game_id": self.game_id,
+                    "player_id": self.player_id,
+                    "players_needed": self.game_manager.max_players - 1
+                }
+            })
+            self.conn.sendall(join_msg.encode("utf-8"))
+            print(f"Player {self.player_id} created and joined game {self.game_id}")
+
+            # Start game if full (though unlikely with just creator)
+            if len(self.game.player_conns) == self.game_manager.max_players:
+                self.game_manager.start_game(self.game_id)
+
+        except Exception as e:
+            print(f"Error creating game: {e}")
+            error_msg = serialize_message({
+                "type": "ERROR",
+                "payload": "Failed to create game"
+            })
+            self.conn.sendall(error_msg.encode("utf-8"))
+
+    def list_games(self):
+        """Send list of available games to client"""
+        try:
+            games_list = self.game_manager.list_games()
+            response = serialize_message({
+                "type": "GAMES_LIST",
+                "payload": {
+                    "games": games_list,
+                    "can_create": True
+                }
+            })
+            self.conn.sendall(response.encode("utf-8"))
+        except Exception as e:
+            print(f"Error listing games: {e}")
 
 
 def start_server(port=PORT, max_players=MAX_PLAYERS, turn_timeout=TURN_TIMEOUT):
@@ -57,48 +297,29 @@ def start_server(port=PORT, max_players=MAX_PLAYERS, turn_timeout=TURN_TIMEOUT):
 
     # Socket del servidor
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Allow port reuse
     sock.bind((HOST, port))
-    sock.listen(max_players)
+    sock.listen(10)  # Allow more connections for multiple games
     print(f"Servidor UNO escuchando en puerto {port}")
 
-    # Iniciar Game
-    game = Game(max_players=max_players, turn_timeout=turn_timeout)
+    # Game manager
+    game_manager = GameManager(max_players, turn_timeout)
+
     try:
-        # Accept connections
-        player_id = 1
-        while player_id <= max_players:
+        while True:
             conn, addr = sock.accept()
-            print(f"Jugador {player_id} conectado desde {addr}")
-            print(f"Faltante de jugadores: {max_players - player_id} para comenzar la partida.")
-            game.add_player(player_id, conn)
-            print(f"Jugador añadido al juego |conn {conn} | player_id {player_id}.")
-            handler = ClientHandler(conn, addr, player_id, game, send_pipe)
+            print(f"Nueva conexión desde {addr}")
+            handler = ClientHandler(conn, addr, game_manager, send_pipe)
             handler.start()
-            print(f"Handler iniciado para jugador {player_id} | addr {addr} | send_pipe {send_pipe}.")
-            player_id += 1
-            print(f"Nuevo player ID {player_id}.")
-
-        print("Todos los jugadores conectados. Iniciando partida...")
-        # Start game
-        game.start_game()
-
-        # Wait for game end
-        game.wait_end()
 
     except Exception as e:
         print(f"Error en el servidor: {e}", file=sys.stderr)
     finally:
         sock.close()
+        logger_proc.terminate()
         logger_proc.join()
         print("Servidor finalizado.")
 
 
-if __name__ == '__main__':
-    import argparse
-
-    parser = argparse.ArgumentParser(description='Servidor UNO')
-    parser.add_argument('--port', type=int, default=PORT)
-    parser.add_argument('--max-players', type=int, default=MAX_PLAYERS)
-    parser.add_argument('--turn-timeout', type=int, default=TURN_TIMEOUT)
-    args = parser.parse_args()
-    start_server(port=args.port, max_players=args.max_players, turn_timeout=args.turn_timeout)
+if __name__ == "__main__":
+    start_server()
