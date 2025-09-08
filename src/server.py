@@ -5,7 +5,7 @@ import os
 import uuid
 from multiprocessing import Pipe, Process
 from typing import Any
-
+import json
 from utils import deserialize_message, serialize_message
 from game import Game
 from logger import logger_process
@@ -120,6 +120,7 @@ class ClientHandler(threading.Thread):
     def __init__(self, conn, addr, game_manager, send_pipe):
         super().__init__(daemon=True)
         self.conn = conn
+        self.conn_file = conn.makefile(mode="rw")
         self.addr = addr
         self.game_manager = game_manager
         self.send_pipe = send_pipe
@@ -127,83 +128,82 @@ class ClientHandler(threading.Thread):
         self.player_id = None
         self.game = None
 
+    def send_message(self, msg: dict):
+        self.conn_file.write(json.dumps(msg) + "\n")
+        self.conn_file.flush()
+
+    def receive_message(self):
+        line = self.conn_file.readline()
+        if not line:
+            return None
+        return json.loads(line)
+
     def run(self):
         try:
-            # Wait for initial command
-            data = self.conn.recv(1024)
-            if not data:
+            msg = self.receive_message()
+            if not msg:
                 return
 
-            msg = deserialize_message(data)
             action = msg.get("action")
 
             if action == "LIST_GAMES":
                 self.list_games()
-                # Wait for next command after listing games
-                data = self.conn.recv(1024)
-                if not data:
+                msg = self.receive_message()
+                if not msg:
                     return
-                msg = deserialize_message(data)
                 action = msg.get("action")
 
-            elif action == "CREATE_GAME":
+            if action == "CREATE_GAME":
                 self.create_new_game()
             elif action == "JOIN":
                 self.join_game(msg)
             else:
-                error_msg = serialize_message({
+                self.send_message({
                     "type": "ERROR",
                     "payload": "Esperado LIST_GAMES, CREATE_GAME, o JOIN"
                 })
-                self.conn.sendall(error_msg.encode("utf-8"))
                 return
 
             if self.game and self.player_id:
                 while True:
-                    data = self.conn.recv(1024)
-                    if not data:
+                    msg = self.receive_message()
+                    if not msg:
                         break
-                    msg = deserialize_message(data)
                     self.send_pipe.send({
                         'event': 'command',
                         'player': self.player_id,
                         'command': msg,
                         'game_id': self.game_id
                     })
-
                     self.game.handle_action(self.player_id, msg)
 
         except Exception as e:
             print(f"Error cliente {self.addr}: {e}", file=sys.stderr)
         finally:
             if self.game and self.player_id:
-                # Remove player from game
                 self.game.remove_player(self.player_id)
-                # Check if game should be removed
                 with self.game.lock:
                     if len(self.game.player_conns) == 0:
                         self.game_manager.remove_game(self.game_id)
+            self.conn_file.close()
             self.conn.close()
 
     def join_game(self, msg: dict[str, Any]):
-        game_id = msg.get("game_id")  # Optional specific game ID
+        game_id = msg.get("game_id")
         self.game_id, self.game = self.game_manager.join_game(game_id)
 
         if not self.game:
-            error_msg = serialize_message({
+            self.send_message({
                 "type": "ERROR",
                 "payload": "Game not found or full"
             })
-            self.conn.sendall(error_msg.encode("utf-8"))
             return
 
-        # Add player to game - Fix player ID assignment
         with self.game.lock:
             self.player_id = max(self.game.player_conns.keys(), default=0) + 1
             self.game.add_player(self.player_id, self.conn)
 
-        # Send join confirmation
-        join_msg = serialize_message({
+        self.send_message({
             "type": "JOINED",
             "payload": {
                 "game_id": self.game_id,
@@ -211,45 +211,30 @@ class ClientHandler(threading.Thread):
                 "players_needed": self.game_manager.max_players - len(self.game.player_conns)
             }
         })
-        self.conn.sendall(join_msg.encode("utf-8"))
 
         print(f"Player {self.player_id} joined game {self.game_id}")
 
-        # Start game if full
         if len(self.game.player_conns) == self.game_manager.max_players:
             self.game_manager.start_game(self.game_id)
 
-        # Handle game commands
         while True:
-            data = self.conn.recv(1024)
-            if not data:
+            msg = self.receive_message()
+            if not msg:
                 break
-
-            msg = deserialize_message(data)
-
-            # Log command
             self.send_pipe.send({
                 'event': 'command',
                 'player': self.player_id,
                 'command': msg,
                 'game_id': self.game_id
             })
-
-            # Handle action through game - this is thread-safe now
             self.game.handle_action(self.player_id, msg)
 
     def create_new_game(self):
-        """Create a new game and add player to it"""
         try:
-            # Create new game
             self.game_id, self.game = self.game_manager.create_game()
-
-            # Add player to the new game
-            self.player_id = 1  # Creator is always player 1
+            self.player_id = 1
             self.game.add_player(self.player_id, self.conn)
-
-            # Send creation confirmation
-            join_msg = serialize_message({
+            self.send_message({
                 "type": "GAME_CREATED",
                 "payload": {
                     "game_id": self.game_id,
@@ -257,33 +242,28 @@ class ClientHandler(threading.Thread):
                     "players_needed": self.game_manager.max_players - 1
                 }
             })
-            self.conn.sendall(join_msg.encode("utf-8"))
             print(f"Player {self.player_id} created and joined game {self.game_id}")
 
-            # Start game if full (though unlikely with just creator)
             if len(self.game.player_conns) == self.game_manager.max_players:
                 self.game_manager.start_game(self.game_id)
 
         except Exception as e:
             print(f"Error creating game: {e}")
-            error_msg = serialize_message({
+            self.send_message({
                 "type": "ERROR",
                 "payload": "Failed to create game"
             })
-            self.conn.sendall(error_msg.encode("utf-8"))
 
     def list_games(self):
-        """Send list of available games to client"""
         try:
             games_list = self.game_manager.list_games()
-            response = serialize_message({
+            self.send_message({
                 "type": "GAMES_LIST",
                 "payload": {
                     "games": games_list,
                     "can_create": True
                 }
             })
-            self.conn.sendall(response.encode("utf-8"))
         except Exception as e:
             print(f"Error listing games: {e}")
 

@@ -4,6 +4,7 @@ import sys
 import os
 from utils import deserialize_message, serialize_message
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 
@@ -16,6 +17,7 @@ class UnoClient:
         self.host = host
         self.port = port
         self.socket = None
+        self.sock_file = None
         self.player_id = None
         self.game_id = None
         self.hand = []
@@ -25,10 +27,10 @@ class UnoClient:
         self.connected = False
 
     def connect(self):
-        """Connect to the UNO server"""
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.connect((self.host, self.port))
+            self.sock_file = self.socket.makefile(mode="rw")
             self.connected = True
             print(f"Conectado al servidor {self.host}:{self.port}")
             return True
@@ -37,14 +39,12 @@ class UnoClient:
             return False
 
     def disconnect(self):
-        """Disconnect from server"""
         if self.socket:
             self.socket.close()
             self.connected = False
             print("Desconectado del servidor")
 
     def show_main_menu(self):
-        """Show main menu for game selection"""
         print("\n=== MENU PRINCIPAL UNO ===")
         print("1. Ver juegos disponibles")
         print("2. Crear nuevo juego")
@@ -60,16 +60,22 @@ class UnoClient:
             except KeyboardInterrupt:
                 return '4'
 
+    def send_message(self, msg: dict):
+        self.sock_file.write(json.dumps(msg) + "\n")
+        self.sock_file.flush()
+
+    def receive_message(self):
+        line = self.sock_file.readline()
+        if not line:
+            return None
+        return json.loads(line)
+
     def list_games(self):
-        """List available games"""
         try:
-            msg = serialize_message({"action": "LIST_GAMES"})
-            self.socket.sendall(msg.encode("utf-8"))
+            self.send_message({"action": "LIST_GAMES"})
+            data = self.receive_message()
 
-            response = self.socket.recv(1024)
-            data = deserialize_message(response)
-
-            if data.get("type") == "GAMES_LIST":
+            if data and data.get("type") == "GAMES_LIST":
                 games = data["payload"]["games"]
                 if not games:
                     print("\nNo hay juegos disponibles.")
@@ -90,15 +96,11 @@ class UnoClient:
             return []
 
     def create_game(self):
-        """Create a new game"""
         try:
-            msg = serialize_message({"action": "CREATE_GAME"})
-            self.socket.sendall(msg.encode("utf-8"))
+            self.send_message({"action": "CREATE_GAME"})
+            data = self.receive_message()
 
-            response = self.socket.recv(1024)
-            data = deserialize_message(response)
-
-            if data.get("type") == "GAME_CREATED":
+            if data and data.get("type") == "GAME_CREATED":
                 payload = data["payload"]
                 self.game_id = payload["game_id"]
                 self.player_id = payload["player_id"]
@@ -110,7 +112,8 @@ class UnoClient:
                 print(f"Esperando {players_needed} jugador(es) más...")
                 return True
             else:
-                print(f"Error creando juego: {data.get('payload', 'Error desconocido')}")
+                print(
+                    f"Error creando juego: {data.get('payload', 'Error desconocido') if data else 'Sin respuesta del servidor'}")
                 return False
 
         except Exception as e:
@@ -118,15 +121,11 @@ class UnoClient:
             return False
 
     def join_game_by_id(self, game_id):
-        """Join a specific game by ID"""
         try:
-            msg = serialize_message({"action": "JOIN", "game_id": game_id})
-            self.socket.sendall(msg.encode("utf-8"))
+            self.send_message({"action": "JOIN", "game_id": game_id})
+            data = self.receive_message()
 
-            response = self.socket.recv(1024)
-            data = deserialize_message(response)
-
-            if data.get("type") == "JOINED":
+            if data and data.get("type") == "JOINED":
                 payload = data["payload"]
                 self.game_id = payload["game_id"]
                 self.player_id = payload["player_id"]
@@ -139,7 +138,8 @@ class UnoClient:
                     print(f"Esperando {players_needed} jugador(es) más...")
                 return True
             else:
-                print(f"Error uniéndose al juego: {data.get('payload', 'Error desconocido')}")
+                print(
+                    f"Error uniéndose al juego: {data.get('payload', 'Error desconocido') if data else 'Sin respuesta del servidor'}")
                 return False
 
         except Exception as e:
@@ -147,12 +147,10 @@ class UnoClient:
             return False
 
     def game_setup(self):
-        """Handle game setup menu"""
         while True:
             choice = self.show_main_menu()
 
             if choice == '1':
-                # List and join game
                 games = self.list_games()
                 if games:
                     print("\n0. Volver al menú principal")
@@ -175,12 +173,10 @@ class UnoClient:
                         print("Por favor ingresa un número válido.")
 
             elif choice == '2':
-                # Create new game
                 if self.create_game():
                     return True
 
             elif choice == '3':
-                # Join specific game by ID
                 game_id = input("Ingresa el ID del juego: ").strip()
                 if game_id:
                     if self.join_game_by_id(game_id):
@@ -189,27 +185,21 @@ class UnoClient:
                     print("ID de juego inválido.")
 
             elif choice == '4':
-                # Exit
                 return False
 
     def listen_for_messages(self):
-        """Listen for server messages in a separate thread"""
         while self.connected:
             try:
-                data = self.socket.recv(1024)
+                data = self.receive_message()
                 if not data:
                     break
-
-                msg = deserialize_message(data)
-                self.handle_server_message(msg)
-
+                self.handle_server_message(data)
             except Exception as e:
                 if self.connected:
                     print(f"Error recibiendo mensaje: {e}")
                 break
 
     def handle_server_message(self, msg):
-        """Handle messages from server"""
         msg_type = msg.get("type")
         payload = msg.get("payload", {})
 
@@ -255,7 +245,6 @@ class UnoClient:
             print(f"Levantaste: {card}")
 
     def show_game_state(self):
-        """Display current game state"""
         print(f"\n=== ESTADO DEL JUEGO ===")
         print(f"Juego ID: {self.game_id}")
         print(f"Jugadores: {self.players}")
@@ -265,8 +254,6 @@ class UnoClient:
             print(f"  {i}. {card}")
 
     def play_game(self):
-        """Main game loop"""
-        # Start listening thread
         listen_thread = threading.Thread(target=self.listen_for_messages, daemon=True)
         listen_thread.start()
 
@@ -287,23 +274,20 @@ class UnoClient:
                 elif command == 'mano':
                     self.show_game_state()
                 elif command == 'levantar':
-                    msg = serialize_message({"action": "LEVANTAR"})
-                    self.socket.sendall(msg.encode("utf-8"))
+                    self.send_message({"action": "LEVANTAR"})
                 elif command == 'pasar':
-                    msg = serialize_message({"action": "PASAR"})
-                    self.socket.sendall(msg.encode("utf-8"))
+                    self.send_message({"action": "PASAR"})
                 elif command.startswith('juego '):
                     try:
                         card_num = int(command.split()[1]) - 1
                         if 0 <= card_num < len(self.hand):
                             card = self.hand[card_num]
                             color, value = card.split()
-                            msg = serialize_message({
+                            self.send_message({
                                 "action": "JUEGO",
                                 "color": color,
                                 "value": value
                             })
-                            self.socket.sendall(msg.encode("utf-8"))
                         else:
                             print("Número de carta inválido")
                     except (ValueError, IndexError):
@@ -318,7 +302,6 @@ class UnoClient:
                 break
 
     def run(self):
-        """Main client function"""
         if not self.connect():
             return
 

@@ -38,7 +38,7 @@ def serialize_message(message: Dict[str, Any]) -> str:
     if isinstance(message, bytes):
         message = message.decode("utf-8")
     print(f"Serializando mensaje: {message}")
-    return json.dumps(message)
+    return json.dumps(message) + "\n"
 
 
 def deserialize_message(msg_str: str) -> Dict[str, Any]:
