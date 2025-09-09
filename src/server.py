@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-HOST = os.environ.get("HOST", "localhost")
+HOST = os.environ.get("HOST", "::")
 PORT = int(os.environ.get("PORT", 8090))
 MAX_PLAYERS = int(os.environ.get("MAX_PLAYERS", 2))
 TURN_TIMEOUT = int(os.environ.get("TURN_TIMEOUT", 300))
@@ -266,36 +266,49 @@ class ClientHandler(threading.Thread):
 
 
 def start_server(port=PORT, max_players=MAX_PLAYERS, turn_timeout=TURN_TIMEOUT):
-    # Pipe para logger
     recv_pipe, send_pipe = Pipe(duplex=False)
     log_path = os.path.join(os.path.dirname(__file__), '..', 'logs', 'game.log')
     logger_proc = Process(target=logger_process, args=(recv_pipe, log_path), daemon=True)
     logger_proc.start()
 
-    # Socket del servidor
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Allow port reuse
-    sock.bind((HOST, port))
-    sock.listen(10)  # Allow more connections for multiple games
-    print(f"Servidor UNO escuchando en puerto {port}")
+    # Get all available IPv4 and IPv6 addresses
+    addrinfos = socket.getaddrinfo(
+        HOST, port, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM, flags=socket.AI_PASSIVE
+    )
+    sockets = []
+    for addrinfo in addrinfos:
+        af, socktype, proto, canonname, sa = addrinfo
+        try:
+            s = socket.socket(af, socktype, proto)
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            if af == socket.AF_INET6:
+                s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+            s.bind(sa)
+            s.listen(10)
+            sockets.append(s)
+            print(f"Listening on {sa} (family {af})")
+        except Exception as e:
+            print(f"Could not bind to {sa}: {e}")
 
-    # Game manager
     game_manager = GameManager(max_players, turn_timeout)
 
     try:
         while True:
-            conn, addr = sock.accept()
-            print(f"Nueva conexión desde {addr}")
-            handler = ClientHandler(conn, addr, game_manager, send_pipe)
-            handler.start()
-
+            import select
+            rlist, _, _ = select.select(sockets, [], [])
+            for s in rlist:
+                conn, addr = s.accept()
+                print(f"New connection from {addr}")
+                handler = ClientHandler(conn, addr, game_manager, send_pipe)
+                handler.start()
     except Exception as e:
-        print(f"Error en el servidor: {e}", file=sys.stderr)
+        print(f"Server error: {e}", file=sys.stderr)
     finally:
-        sock.close()
+        for s in sockets:
+            s.close()
         logger_proc.terminate()
         logger_proc.join()
-        print("Servidor finalizado.")
+        print("Server stopped.")
 
 
 if __name__ == "__main__":
