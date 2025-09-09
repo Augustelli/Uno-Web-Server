@@ -1,8 +1,6 @@
 import socket
 import threading
-import sys
 import os
-from utils import deserialize_message, serialize_message
 from dotenv import load_dotenv
 import json
 
@@ -304,7 +302,6 @@ class UnoClient:
     def run(self):
         if not self.connect():
             return
-
         try:
             if self.game_setup():
                 self.play_game()

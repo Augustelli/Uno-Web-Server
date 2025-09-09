@@ -37,17 +37,14 @@ class GameManager:
             print(f"Created new game: {game_id}")
             return game_id, game
 
-    def join_game(self, msg):
+    def join_game(self, game_id):
         """Join a specific game by ID"""
-        game_id = msg.get("game_id")  # Specific game ID required
-
-        if not game_id:
-            error_msg = serialize_message({
-                "type": "ERROR",
-                "payload": "Game ID required for JOIN action"
-            })
-            self.conn.sendall(error_msg.encode("utf-8"))
-            return
+        with self.lock:
+            if game_id in self.waiting_games:
+                game = self.waiting_games[game_id]
+                if len(game.player_conns) < self.max_players:
+                    return game_id, game
+        return None, None
 
         # Try to join specific game
         with self.game_manager.lock:
