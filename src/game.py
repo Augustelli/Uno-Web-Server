@@ -197,8 +197,8 @@ class Game:
                 self._broadcast_event({"event": "timeout", "player": current_player_id})
                 break
 
-        # Advance turn
         self.current_turn = self._next_player_id()
+        self._broadcast_full_update()
 
     def _next_player_id(self):
         # Returns the next player ID in round-robin order
@@ -232,6 +232,7 @@ class Game:
             self.discard_pile.append(card)
             event = {"event": "play", "player": pid, "card": str(card)}
             self._broadcast_event(event)
+            self._broadcast_full_update()
             return True
         else:
             # Invalid play - player loses turn
@@ -248,6 +249,11 @@ class Game:
             print(f"Broadcasting event: {event}")
             msg = serialize_message({"type": "RESULT", "payload": event})
             self._send(conn, msg)
+
+    def _broadcast_full_update(self) -> None:
+        # envía a cada jugador su mano + top + turno
+        for pid, conn in self.player_conns.items():
+            self._send(conn, self._make_update(pid))
 
     def _make_update(self, pid: int) -> str:
         payload = {
