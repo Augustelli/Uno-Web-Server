@@ -1,14 +1,16 @@
+# server.py
 import socket
 import threading
 import sys
 import os
 import uuid
 from multiprocessing import Pipe, Process
-from typing import Any
+from typing import Any, Dict, Tuple, Optional
 import json
 from game import Game
 from logger import logger_process
 from dotenv import load_dotenv
+import select
 
 load_dotenv()
 
@@ -19,34 +21,32 @@ TURN_TIMEOUT = int(os.environ.get("TURN_TIMEOUT", 300))
 
 
 class GameManager:
-    def __init__(self, max_players, turn_timeout):
-        self.games = {}  # game_id -> Game instance
-        self.waiting_games = {}  # game_id -> Game instance (games waiting for players)
-        self.player_to_game = {}  # player_conn -> game_id
+    def __init__(self, max_players: int, turn_timeout: int):
+        self.games: Dict[str, Game] = {}           # activos
+        self.waiting_games: Dict[str, Game] = {}   # esperando jugadores
         self.max_players = max_players
         self.turn_timeout = turn_timeout
-        self.lock = threading.Lock() # Usado para evitar RACE CONDITIONS
+        self.lock = threading.Lock()
 
-    def create_game(self):
-        """Create a new game and return its ID"""
+    def create_game(self) -> Tuple[str, Game]:
         with self.lock:
-            game_id = str(uuid.uuid4())[:8]  # Short UUID
+            game_id = str(uuid.uuid4())[:8]
             game = Game(max_players=self.max_players, turn_timeout=self.turn_timeout)
             self.waiting_games[game_id] = game
             print(f"Juego creado: {game_id}")
             return game_id, game
 
-    def join_game(self, game_id):
-        """Join a specific game by ID"""
+    def join_game(self, game_id: str) -> Tuple[Optional[str], Optional[Game]]:
         with self.lock:
-            if game_id in self.waiting_games:
-                game = self.waiting_games[game_id]
-                if len(game.player_conns) < self.max_players:
-                    return game_id, game
+            game = self.waiting_games.get(game_id)
+            if not game:
+                return None, None
+            # capacidad libre
+            if len(game.player_conns) < self.max_players:
+                return game_id, game
         return None, None
 
-    def _run_game(self, game_id, game):
-        """Wrapper to run game.start_game and ensure cleanup when it ends"""
+    def _run_game(self, game_id: str, game: Game) -> None:
         try:
             game.start_game()
         except Exception as e:
@@ -57,239 +57,248 @@ class GameManager:
                 self.waiting_games.pop(game_id, None)
             print(f"Juego terminado: {game_id}")
 
-    def start_game(self, game_id):
-        """Move game from waiting to active games and start it in a new thread"""
-        game = None
+    def start_game(self, game_id: str) -> None:
         with self.lock:
-            if game_id in self.waiting_games:
-                game = self.waiting_games.pop(game_id)
-                self.games[game_id] = game
-
-        if not game:
-            return
+            game = self.waiting_games.pop(game_id, None)
+            if not game:
+                return
+            self.games[game_id] = game
 
         print(f"Starting game thread for {game_id}")
         t = threading.Thread(target=self._run_game, args=(game_id, game), daemon=True)
         t.start()
         print(f"Juego comenzado (threaded): {game_id}")
 
-    def remove_game(self, game_id):
-        """Remove finished game"""
+    def remove_game(self, game_id: str) -> None:
         with self.lock:
             self.games.pop(game_id, None)
             self.waiting_games.pop(game_id, None)
             print(f"Juego eliminado: {game_id}")
 
     def list_games(self):
-        """List all available games"""
         with self.lock:
             games_list = []
-            for game_id, game in self.waiting_games.items():
+            for gid, game in self.waiting_games.items():
+                players = len(game.player_conns)
                 games_list.append({
-                    "game_id": game_id,
-                    "players": len(game.player_conns),
+                    "game_id": gid,
+                    "players": players,
                     "max_players": self.max_players,
-                    "slots_available": self.max_players - len(game.player_conns)
+                    "slots_available": self.max_players - players
                 })
             return games_list
 
 
 class ClientHandler(threading.Thread):
-    def __init__(self, conn, addr, game_manager, send_pipe):
+    """
+    Un hilo por cliente; UN SOLO loop que procesa cualquier acción.
+    Usamos dos makefiles: reader (r) y writer (w), texto UTF-8, line-buffered.
+    """
+    def __init__(self, conn: socket.socket, addr, game_manager: GameManager, send_pipe):
         super().__init__(daemon=True)
         self.conn = conn
-        self.conn_file = conn.makefile(mode="rw")
+        self.reader = conn.makefile(mode="r", buffering=1, encoding="utf-8", newline="\n")
+        self.writer = conn.makefile(mode="w", buffering=1, encoding="utf-8", newline="\n")
         self.addr = addr
         self.game_manager = game_manager
         self.send_pipe = send_pipe
-        self.game_id = None
-        self.player_id = None
-        self.game = None
+        self.game_id: Optional[str] = None
+        self.player_id: Optional[int] = None
+        self.game: Optional[Game] = None
 
-    def send_message(self, msg: dict):
+    # ------------ IO helpers ------------
+    def send_message(self, msg: dict) -> None:
         try:
-            self.conn_file.write(json.dumps(msg) + "\n")
-            self.conn_file.flush()
-        except Exception:
-            pass
+            self.writer.write(json.dumps(msg) + "\n")
+            self.writer.flush()
+        except Exception as e:
+            print(f"send_message error {self.addr}: {e}", file=sys.stderr)
 
-    def receive_message(self):
-        line = self.conn_file.readline()
+    def receive_message(self) -> Optional[dict]:
+        try:
+            line = self.reader.readline()
+        except Exception as e:
+            print(f"readline error {self.addr}: {e}", file=sys.stderr)
+            return None
         if not line:
             return None
-        return json.loads(line)
-
-    def run(self):
         try:
-            msg = self.receive_message()
-            if not msg:
-                return
+            obj = json.loads(line)
+        except json.JSONDecodeError as e:
+            print(f"JSON decode error from {self.addr}: {e}; line={line!r}", file=sys.stderr)
+            return None
+        if not isinstance(obj, dict):
+            print(f"Non-object JSON from {self.addr}: {obj!r}", file=sys.stderr)
+            self.send_message({"type": "ERROR", "payload": "Formato inválido: se esperaba un objeto JSON"})
+            return None
+        return obj
 
-            action = msg.get("action")
-
-            if action == "LIST_GAMES":
-                self.list_games()
+    # ------------ main loop ------------
+    def run(self) -> None:
+        try:
+            while True:
                 msg = self.receive_message()
-                if not msg:
-                    return
+                if not isinstance(msg, dict):
+                    break
+
                 action = msg.get("action")
 
-            if action == "CREATE_GAME":
-                self.create_new_game()
-            elif action == "JOIN":
-                self.join_game(msg)
-            else:
-                self.send_message({
-                    "type": "ERROR",
-                    "payload": "Esperado LIST_GAMES, CREATE_GAME, o JOIN"
-                })
-                return
+                # --- Menú/lobby ---
+                if action == "LIST_GAMES":
+                    self.list_games()
+                    # seguimos el loop; NO leemos otra línea inmediata aquí
+                    continue
 
-            # Centralized message loop: read commands from client and forward to game
-            if self.game and self.player_id:
-                while True:
-                    msg = self.receive_message()
-                    if not msg:
-                        break
-                    # forward to logger/process pipeline if needed
+                if action == "CREATE_GAME":
+                    self.create_new_game()
+                    # seguimos el loop; el cliente puede esperar jugadores o enviar comandos luego
+                    continue
+
+                if action == "JOIN":
+                    self.join_game(msg)
+                    continue
+
+                # --- Acciones de juego (si ya estamos en uno) ---
+                if self.game and self.player_id:
                     try:
-                        self.send_pipe.send({
-                            'event': 'command',
-                            'player': self.player_id,
-                            'command': msg,
-                            'game_id': self.game_id
-                        })
-                    except Exception:
-                        pass
-                    # let the game process the action in a background thread to avoid blocking the handler
-                    try:
-                        threading.Thread(target=self.game.handle_action, args=(self.player_id, msg), daemon=True).start()
+                        # log no crítico
+                        try:
+                            self.send_pipe.send({
+                                'event': 'command',
+                                'player': self.player_id,
+                                'command': msg,
+                                'game_id': self.game_id
+                            })
+                        except Exception:
+                            pass
+                        # encolar acción (sin threads extra)
+                        self.game.handle_action(self.player_id, msg)
                     except Exception as e:
                         print(f"Error dispatching action for player {self.player_id}: {e}", file=sys.stderr)
+                else:
+                    # Si no estamos en juego y acción desconocida
+                    self.send_message({"type": "ERROR", "payload": "Comando inválido en lobby"})
 
         except Exception as e:
             print(f"Error cliente {self.addr}: {e}", file=sys.stderr)
         finally:
-            if self.game and self.player_id:
+            # cleanup
+            try:
+                if self.game and self.player_id is not None:
+                    try:
+                        self.game.remove_player(self.player_id)
+                    except Exception:
+                        pass
+                    if self.game_id:
+                        with self.game.lock:
+                            if len(self.game.player_conns) == 0:
+                                self.game_manager.remove_game(self.game_id)
+            finally:
+                for f in (self.reader, self.writer):
+                    try:
+                        f.close()
+                    except Exception:
+                        pass
                 try:
-                    self.game.remove_player(self.player_id)
+                    self.conn.close()
                 except Exception:
                     pass
-                with self.game.lock:
-                    if len(self.game.player_conns) == 0:
-                        self.game_manager.remove_game(self.game_id)
-            try:
-                self.conn_file.close()
-            except Exception:
-                pass
-            try:
-                self.conn.close()
-            except Exception:
-                pass
 
-    def join_game(self, msg: dict[str, Any]):
+    # ------------ lobby actions ------------
+    def join_game(self, msg: Dict[str, Any]) -> None:
         game_id = msg.get("game_id")
         self.game_id, self.game = self.game_manager.join_game(game_id)
 
         if not self.game:
-            self.send_message({
-                "type": "ERROR",
-                "payload": "Game not found or full"
-            })
+            self.send_message({"type": "ERROR", "payload": "Game not found or full"})
             return
 
         with self.game.lock:
-            # assign numeric player id
             self.player_id = max(self.game.player_conns.keys(), default=0) + 1
-            # pass the file object so the game uses the same buffered writer/reader
-            self.game.add_player(self.player_id, self.conn_file)
+            # pasamos SOLO writer al Game
+            self.game.add_player(self.player_id, self.writer)
+            players_needed = self.game_manager.max_players - len(self.game.player_conns)
+            should_start = (players_needed == 0)
 
         self.send_message({
             "type": "JOINED",
             "payload": {
                 "game_id": self.game_id,
                 "player_id": self.player_id,
-                "players_needed": self.game_manager.max_players - len(self.game.player_conns)
+                "players_needed": players_needed
             }
         })
+        print(f"Jugador {self.player_id} entró al juego {self.game_id}")
 
-        print(f"Juegador {self.player_id} entro al juego {self.game_id}")
-
-        if len(self.game.player_conns) == self.game_manager.max_players:
+        if should_start:
             self.game_manager.start_game(self.game_id)
 
-    def create_new_game(self):
+    def create_new_game(self) -> None:
         try:
             self.game_id, self.game = self.game_manager.create_game()
-            self.player_id = 1
-            # pass the file object so the game uses the same buffered writer/reader
-            self.game.add_player(self.player_id, self.conn_file)
+            with self.game.lock:
+                self.player_id = 1
+                self.game.add_player(self.player_id, self.writer)
+                players_needed = self.game_manager.max_players - 1
+                should_start = (players_needed == 0)
+
             self.send_message({
                 "type": "GAME_CREATED",
                 "payload": {
                     "game_id": self.game_id,
                     "player_id": self.player_id,
-                    "players_needed": self.game_manager.max_players - 1
+                    "players_needed": players_needed
                 }
             })
             print(f"Player {self.player_id} created and joined game {self.game_id}")
 
-            if len(self.game.player_conns) == self.game_manager.max_players:
+            if should_start:
                 self.game_manager.start_game(self.game_id)
 
         except Exception as e:
-            print(f"Error creating game: {e}")
-            self.send_message({
-                "type": "ERROR",
-                "payload": "Failed to create game"
-            })
+            print(f"Error creating game: {e}", file=sys.stderr)
+            self.send_message({"type": "ERROR", "payload": "Failed to create game"})
 
-    def list_games(self):
+    def list_games(self) -> None:
         try:
             games_list = self.game_manager.list_games()
             self.send_message({
                 "type": "GAMES_LIST",
-                "payload": {
-                    "games": games_list,
-                    "can_create": True
-                }
+                "payload": {"games": games_list, "can_create": True}
             })
         except Exception as e:
-            print(f"Error listando los juegos: {e}")
+            print(f"Error listando los juegos: {e}", file=sys.stderr)
 
 
-
-def start_server(port=PORT, max_players=MAX_PLAYERS, turn_timeout=TURN_TIMEOUT):
+def start_server(port: int = PORT, max_players: int = MAX_PLAYERS, turn_timeout: int = TURN_TIMEOUT) -> None:
     # Pipes para logging
     recv_pipe, send_pipe = Pipe(duplex=False)
     log_path = os.path.join(os.path.dirname(__file__), '..', 'logs', 'game.log')
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
     logger_proc = Process(target=logger_process, args=(recv_pipe, log_path), daemon=True)
     logger_proc.start()
 
-    # Get all available IPv4 and IPv6 addresses
     addrinfos = socket.getaddrinfo(
         HOST, port, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM, flags=socket.AI_PASSIVE
     )
     sockets = []
-    for addrinfo in addrinfos:
-        af, socktype, proto, canonname, sa = addrinfo
+    for af, socktype, proto, canonname, sa in addrinfos:
         try:
             s = socket.socket(af, socktype, proto)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             if af == socket.AF_INET6:
                 s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
             s.bind(sa)
-            s.listen(10)
+            s.listen(128)
             sockets.append(s)
-            print(f"Escuchando en  {sa} (family {af})")
+            print(f"Escuchando en {sa} (family {af})")
         except Exception as e:
-            print(f"No se puedo unir {sa}: {e}")
+            print(f"No se pudo unir {sa}: {e}", file=sys.stderr)
 
     game_manager = GameManager(max_players, turn_timeout)
 
     try:
         while True:
-            import select
             rlist, _, _ = select.select(sockets, [], [])
             for s in rlist:
                 conn, addr = s.accept()
@@ -300,7 +309,10 @@ def start_server(port=PORT, max_players=MAX_PLAYERS, turn_timeout=TURN_TIMEOUT):
         print(f"Error del servidor: {e}", file=sys.stderr)
     finally:
         for s in sockets:
-            s.close()
+            try:
+                s.close()
+            except Exception:
+                pass
         logger_proc.terminate()
         logger_proc.join()
         print("Server parado.")

@@ -98,53 +98,16 @@ class Game:
         self.hands[player_id] = []
 
     def _send(self, conn, payload) -> None:
-        """
-        Send payload to conn.
-        - payload can be str or bytes.
-        - conn can be raw socket, a file-like (TextIOWrapper), or a tuple (sock, file).
-        """
-        # Prefer tuple (sock, file) if provided
-        if isinstance(conn, tuple) and len(conn) >= 1:
-            sock = conn[0]
-            file = conn[1] if len(conn) > 1 else None
-            try:
-                if hasattr(sock, "sendall"):
-                    data = payload if isinstance(payload, bytes) else payload.encode("utf-8")
-                    sock.sendall(data)
-                    return
-            except Exception:
-                pass
-            if file and hasattr(file, "write"):
-                try:
-                    txt = payload.decode("utf-8") if isinstance(payload, bytes) else payload
-                    file.write(txt)
-                    file.flush()
-                    return
-                except Exception:
-                    pass
-            return
-
-        # Raw socket
-        if hasattr(conn, "sendall"):
-            try:
-                data = payload if isinstance(payload, bytes) else payload.encode("utf-8")
-                conn.sendall(data)
-                return
-            except Exception as e:
-                print(f"Error sending via socket: {e}")
-
-        # File-like object (from makefile)
-        if hasattr(conn, "write") and hasattr(conn, "flush"):
-            try:
-                txt = payload.decode("utf-8") if isinstance(payload, bytes) else payload
-                conn.write(txt)
-                conn.flush()
-                return
-            except Exception as e:
-                print(f"Error sending via file-like object: {e}")
-
-        # Fallback: best-effort print
-        print("Warning: unsupported connection type when sending message")
+        try:
+            if isinstance(payload, bytes):
+                payload = payload.decode("utf-8", errors="replace")
+            # Si no termina en '\n', lo agregamos; si ya viene de serialize_message, no hacemos nada
+            if not payload.endswith("\n"):
+                payload += "\n"
+            conn.write(payload)
+            conn.flush()
+        except Exception as e:
+            print(f"Error sending to client: {e}")
 
     def start_game(self) -> None:
         # Prepare deck and hands
