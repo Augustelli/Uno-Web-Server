@@ -55,3 +55,7 @@
 2025-08-21T16:39:46.726669 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "ROJO", "value": "5"}}
 2025-08-21T16:42:40.358889 | {"event": "command", "player": 1, "command": {"action": "DIBUJA"}}
 2025-08-21T16:53:53.593955 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "ROJO", "value": "1"}}
+2025-10-28T16:14:36.187572 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "AZUL", "value": "9"}, "game_id": "66b9e120"}
+2025-10-28T16:20:35.401147 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "VERDE", "value": "6"}, "game_id": "22106f5a"}
+2025-11-01T11:30:00.359469 | {"event": "command", "player": 1, "command": {"action": "LEVANTAR"}, "game_id": "582d4abf"}
+2025-11-01T11:42:27.421972 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "ROJO", "value": "4"}, "game_id": "ceea440b"}

@@ -1,17 +1,11 @@
 import socket
-import sys
 import os
-import uuid
-from multiprocessing import Pipe, Process  # TODO agregar logger
-from utils import deserialize_message, serialize_message
-from logger import logger_process
 from dotenv import load_dotenv
 import random
 import queue
 import threading
-import json
 from typing import Dict, List, Tuple
-from utils import deserialize_message, serialize_message  # Make sure this is imported
+from utils import serialize_message
 
 load_dotenv()
 
@@ -84,7 +78,6 @@ class Deck:
     def reset(self) -> None:
         self._build_deck()
 
-
 class Game:
     def __init__(self, max_players: int = 4, turn_timeout: int = 90):
 
@@ -104,6 +97,55 @@ class Game:
         self.player_conns[player_id] = conn
         self.hands[player_id] = []
 
+    def _send(self, conn, payload) -> None:
+        """
+        Send payload to conn.
+        - payload can be str or bytes.
+        - conn can be raw socket, a file-like (TextIOWrapper), or a tuple (sock, file).
+        """
+        # Prefer tuple (sock, file) if provided
+        if isinstance(conn, tuple) and len(conn) >= 1:
+            sock = conn[0]
+            file = conn[1] if len(conn) > 1 else None
+            try:
+                if hasattr(sock, "sendall"):
+                    data = payload if isinstance(payload, bytes) else payload.encode("utf-8")
+                    sock.sendall(data)
+                    return
+            except Exception:
+                pass
+            if file and hasattr(file, "write"):
+                try:
+                    txt = payload.decode("utf-8") if isinstance(payload, bytes) else payload
+                    file.write(txt)
+                    file.flush()
+                    return
+                except Exception:
+                    pass
+            return
+
+        # Raw socket
+        if hasattr(conn, "sendall"):
+            try:
+                data = payload if isinstance(payload, bytes) else payload.encode("utf-8")
+                conn.sendall(data)
+                return
+            except Exception as e:
+                print(f"Error sending via socket: {e}")
+
+        # File-like object (from makefile)
+        if hasattr(conn, "write") and hasattr(conn, "flush"):
+            try:
+                txt = payload.decode("utf-8") if isinstance(payload, bytes) else payload
+                conn.write(txt)
+                conn.flush()
+                return
+            except Exception as e:
+                print(f"Error sending via file-like object: {e}")
+
+        # Fallback: best-effort print
+        print("Warning: unsupported connection type when sending message")
+
     def start_game(self) -> None:
         # Prepare deck and hands
         self.deck.shuffle()
@@ -113,18 +155,20 @@ class Game:
             print(f"Jugador {pid} recibe 7 cartas.")
         # Initialize discard pile
         top_card = self.deck.draw(1)
+        print("Carta inicial para pila de descarte:", top_card)
         if top_card:
             self.discard_pile.append(top_card[0])
+            print(f"Carta inicial en pila de descarte: {top_card[0]}")
         # Broadcast initial state
         for pid, conn in self.player_conns.items():
-            conn.sendall(self._make_update(pid))
+            self._send(conn, self._make_update(pid))
         # Main game loop
         while not self._check_winner():
             self._play_turn()
         # Game ended, announce
         for pid, conn in self.player_conns.items():
             msg = serialize_message({"type": "END", "payload": {"winner": self.winner}})
-            conn.sendall(msg.encode('utf-8'))
+            self._send(conn, msg)
         self._stop_event.set()
 
     def _play_turn(self):
@@ -142,7 +186,7 @@ class Game:
                 self.action_queue.task_done()
 
                 if player_id != current_player_id:
-                    current_conn.sendall(self._serialize({"type": "ERROR", "payload": "No es tu turno."}))
+                    self._send(current_conn, self._serialize({"type": "ERROR", "payload": "No es tu turno."}))
                     continue
 
                 if msg["action"] == "JUEGO":
@@ -165,18 +209,15 @@ class Game:
                                     "hand": [str(c) for c in self.hands[current_player_id]]
                                 }
                             })
-                            current_conn.sendall(card_msg.encode('utf-8'))
+                            self._send(current_conn, card_msg)
                     else:
-                        current_conn.sendall(
-                            serialize_message(
-                                {"type": "ERROR", "payload": "Ya levantaste una carta este turno."}).encode('utf-8'))
+                        self._send(current_conn, self._serialize({"type": "ERROR", "payload": "Ya levantaste una carta este turno."}))
                 elif msg["action"] == "PASAR":
                     if has_drawn:
                         print(f"Jugador {current_player_id} pasa el turno")
                         break
                     else:
-                        current_conn.sendall(
-                            self._serialize({"type": "ERROR", "payload": "Debes levantar una carta antes de pasar."}))
+                        self._send(current_conn, self._serialize({"type": "ERROR", "payload": "Debes levantar una carta antes de pasar."}))
                 elif msg["action"] == "DIBUJA":
                     hand_msg = {
                         "type": "HAND",
@@ -186,9 +227,9 @@ class Game:
                             "top": str(self.discard_pile[-1])
                         }
                     }
-                    current_conn.sendall(self._serialize(hand_msg))
+                    self._send(current_conn, self._serialize(hand_msg))
                 else:
-                    current_conn.sendall(self._serialize({"type": "ERROR", "payload": "Acción desconocida."}))
+                    self._send(current_conn, self._serialize({"type": "ERROR", "payload": "Acción desconocida."}))
             except queue.Empty:
                 self._broadcast_event({"event": "timeout", "player": current_player_id})
                 break
@@ -207,7 +248,7 @@ class Game:
         self.action_queue.put((player_id, msg))
 
     def get_update(self, player_id: int) -> bytes:
-        return self._make_update(player_id)
+        return self._make_update(player_id).encode('utf-8')
 
     def wait_end(self) -> None:
         self._stop_event.wait()
@@ -236,23 +277,23 @@ class Game:
                 "type": "ERROR",
                 "payload": f"Carta inválida. Pierdes el turno. Top: {top}, Jugaste: {card}"
             })
-            conn.sendall(error_msg.encode('utf-8'))
+            self._send(conn, error_msg)
             return False
 
     def _broadcast_event(self, event: Dict) -> None:
         for pid, conn in self.player_conns.items():
             print(f"Broadcasting event: {event}")
             msg = serialize_message({"type": "RESULT", "payload": event})
-            conn.sendall(msg.encode('utf-8'))
+            self._send(conn, msg)
 
-    def _make_update(self, pid: int) -> bytes:
+    def _make_update(self, pid: int) -> str:
         payload = {
             "hand": [str(c) for c in self.hands[pid]],
-            "top": str(self.discard_pile[-1]) if self.discard_pile else "No card",
+            "top": str(self.discard_pile[-1]) if self.discard_pile else "No hay carta",
             "current_turn": self.current_turn,
-            "players": list(self.player_conns.keys())  # Add player list
+            "players": list(self.player_conns.keys())
         }
-        return serialize_message({"type": "UPDATE", "payload": payload}).encode('utf-8')
+        return serialize_message({"type": "UPDATE", "payload": payload})
 
     def remove_player(self, player_id: int) -> None:
         """Remove a player from the game"""
@@ -262,5 +303,5 @@ class Game:
             del self.hands[player_id]
 
     @staticmethod
-    def _serialize(msg: Dict) -> bytes:
-        return serialize_message(msg).encode('utf-8')  # Use the utils function instead
+    def _serialize(msg: Dict) -> str:
+        return serialize_message(msg)

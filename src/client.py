@@ -28,7 +28,8 @@ class UnoClient:
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.connect((self.host, self.port))
-            self.sock_file = self.socket.makefile(mode="rw")
+            # Use explicit encoding and newline for line-oriented protocol
+            self.sock_file = self.socket.makefile(mode="rw", encoding="utf-8", newline="\n")
             self.connected = True
             print(f"Conectado al servidor {self.host}:{self.port}")
             return True
@@ -37,8 +38,20 @@ class UnoClient:
             return False
 
     def disconnect(self):
-        if self.socket:
-            self.socket.close()
+        try:
+            if self.sock_file:
+                try:
+                    self.sock_file.close()
+                except Exception:
+                    pass
+                self.sock_file = None
+            if self.socket:
+                try:
+                    self.socket.close()
+                except Exception:
+                    pass
+                self.socket = None
+        finally:
             self.connected = False
             print("Desconectado del servidor")
 
@@ -59,14 +72,54 @@ class UnoClient:
                 return '4'
 
     def send_message(self, msg: dict):
-        self.sock_file.write(json.dumps(msg) + "\n")
-        self.sock_file.flush()
+        """
+        Send JSON message. Prefer raw socket.sendall; fall back to file-like write/flush.
+        """
+        if not self.connected:
+            raise ConnectionError("Not connected")
+        payload = json.dumps(msg) + "\n"
+        # Prefer raw socket
+        try:
+            if self.socket:
+                self.socket.sendall(payload.encode("utf-8"))
+                return
+        except Exception:
+            # fall through to file-like fallback
+            pass
+
+        # Fallback: file-like object from makefile
+        try:
+            if self.sock_file:
+                self.sock_file.write(payload)
+                self.sock_file.flush()
+                return
+        except Exception as e:
+            raise ConnectionError(f"Failed to send message: {e}")
+
+        raise ConnectionError("No valid connection to send message")
 
     def receive_message(self):
-        line = self.sock_file.readline()
-        if not line:
+        """
+        Read one JSON line from the makefile. Returns dict or None if EOF.
+        """
+        if not self.connected or not self.sock_file:
             return None
-        return json.loads(line)
+        try:
+            line = self.sock_file.readline()
+        except Exception as e:
+            print(f"Error reading from server: {e}")
+            return None
+
+        print("Leyendo línea:", line)
+        if not line:
+            # EOF / connection closed
+            print("No hay linea recibida")
+            return None
+        try:
+            return json.loads(line)
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON: {e}")
+            return None
 
     def list_games(self):
         try:
@@ -187,10 +240,13 @@ class UnoClient:
 
     def listen_for_messages(self):
         while self.connected:
+            print("ESCUCHANDO MENSAJES")
             try:
                 data = self.receive_message()
                 if not data:
+                    print("No hay data al escuchar el mensaje")
                     break
+                print("Hay data al escuchar el mensaje: ", data)
                 self.handle_server_message(data)
             except Exception as e:
                 if self.connected:
@@ -266,7 +322,6 @@ class UnoClient:
         while self.connected:
             try:
                 command = input().strip().lower()
-
                 if command == 'salir':
                     break
                 elif command == 'mano':

@@ -6,7 +6,6 @@ import uuid
 from multiprocessing import Pipe, Process
 from typing import Any
 import json
-from utils import deserialize_message, serialize_message
 from game import Game
 from logger import logger_process
 from dotenv import load_dotenv
@@ -26,7 +25,7 @@ class GameManager:
         self.player_to_game = {}  # player_conn -> game_id
         self.max_players = max_players
         self.turn_timeout = turn_timeout
-        self.lock = threading.Lock()
+        self.lock = threading.Lock() # Usado para evitar RACE CONDITIONS
 
     def create_game(self):
         """Create a new game and return its ID"""
@@ -34,7 +33,7 @@ class GameManager:
             game_id = str(uuid.uuid4())[:8]  # Short UUID
             game = Game(max_players=self.max_players, turn_timeout=self.turn_timeout)
             self.waiting_games[game_id] = game
-            print(f"Created new game: {game_id}")
+            print(f"Juego creado: {game_id}")
             return game_id, game
 
     def join_game(self, game_id):
@@ -46,42 +45,6 @@ class GameManager:
                     return game_id, game
         return None, None
 
-        # Try to join specific game
-        with self.game_manager.lock:
-            if game_id in self.game_manager.waiting_games:
-                self.game = self.game_manager.waiting_games[game_id]
-                if len(self.game.player_conns) < self.game_manager.max_players:
-                    self.game_id = game_id
-                else:
-                    self.game = None
-
-        if not self.game:
-            error_msg = serialize_message({
-                "type": "ERROR",
-                "payload": "Game not found or full"
-            })
-            self.conn.sendall(error_msg.encode("utf-8"))
-            return
-
-        # Add player to game
-        self.player_id = max(self.game.player_conns.keys(), default=0) + 1
-        self.game.add_player(self.player_id, self.conn)
-
-        # Send join confirmation
-        join_msg = serialize_message({
-            "type": "JOINED",
-            "payload": {
-                "game_id": self.game_id,
-                "player_id": self.player_id,
-                "players_needed": self.game_manager.max_players - len(self.game.player_conns)
-            }
-        })
-        self.conn.sendall(join_msg.encode("utf-8"))
-        print(f"Player {self.player_id} joined game {self.game_id}")
-
-        # Start game if full
-        if len(self.game.player_conns) == self.game_manager.max_players:
-            self.game_manager.start_game(self.game_id)
 
     def start_game(self, game_id):
         """Move game from waiting to active games"""
@@ -90,14 +53,14 @@ class GameManager:
                 game = self.waiting_games.pop(game_id)
                 self.games[game_id] = game
                 game.start_game()
-                print(f"Started game: {game_id}")
+                print(f"Juego comenzado: {game_id}")
 
     def remove_game(self, game_id):
         """Remove finished game"""
         with self.lock:
             self.games.pop(game_id, None)
             self.waiting_games.pop(game_id, None)
-            print(f"Removed game: {game_id}")
+            print(f"Juego eliminado: {game_id}")
 
     def list_games(self):
         """List all available games"""
@@ -126,8 +89,11 @@ class ClientHandler(threading.Thread):
         self.game = None
 
     def send_message(self, msg: dict):
-        self.conn_file.write(json.dumps(msg) + "\n")
-        self.conn_file.flush()
+        try:
+            self.conn_file.write(json.dumps(msg) + "\n")
+            self.conn_file.flush()
+        except Exception:
+            pass
 
     def receive_message(self):
         line = self.conn_file.readline()
@@ -161,29 +127,47 @@ class ClientHandler(threading.Thread):
                 })
                 return
 
+            # Centralized message loop: read commands from client and forward to game
             if self.game and self.player_id:
                 while True:
                     msg = self.receive_message()
                     if not msg:
                         break
-                    self.send_pipe.send({
-                        'event': 'command',
-                        'player': self.player_id,
-                        'command': msg,
-                        'game_id': self.game_id
-                    })
-                    self.game.handle_action(self.player_id, msg)
+                    # forward to logger/process pipeline if needed
+                    try:
+                        self.send_pipe.send({
+                            'event': 'command',
+                            'player': self.player_id,
+                            'command': msg,
+                            'game_id': self.game_id
+                        })
+                    except Exception:
+                        pass
+                    # let the game process the action
+                    try:
+                        self.game.handle_action(self.player_id, msg)
+                    except Exception as e:
+                        print(f"Error handling action for player {self.player_id}: {e}", file=sys.stderr)
 
         except Exception as e:
             print(f"Error cliente {self.addr}: {e}", file=sys.stderr)
         finally:
             if self.game and self.player_id:
-                self.game.remove_player(self.player_id)
+                try:
+                    self.game.remove_player(self.player_id)
+                except Exception:
+                    pass
                 with self.game.lock:
                     if len(self.game.player_conns) == 0:
                         self.game_manager.remove_game(self.game_id)
-            self.conn_file.close()
-            self.conn.close()
+            try:
+                self.conn_file.close()
+            except Exception:
+                pass
+            try:
+                self.conn.close()
+            except Exception:
+                pass
 
     def join_game(self, msg: dict[str, Any]):
         game_id = msg.get("game_id")
@@ -197,8 +181,10 @@ class ClientHandler(threading.Thread):
             return
 
         with self.game.lock:
+            # assign numeric player id
             self.player_id = max(self.game.player_conns.keys(), default=0) + 1
-            self.game.add_player(self.player_id, self.conn)
+            # pass the file object so the game uses the same buffered writer/reader
+            self.game.add_player(self.player_id, self.conn_file)
 
         self.send_message({
             "type": "JOINED",
@@ -209,28 +195,17 @@ class ClientHandler(threading.Thread):
             }
         })
 
-        print(f"Player {self.player_id} joined game {self.game_id}")
+        print(f"Juegador {self.player_id} entro al juego {self.game_id}")
 
         if len(self.game.player_conns) == self.game_manager.max_players:
             self.game_manager.start_game(self.game_id)
-
-        while True:
-            msg = self.receive_message()
-            if not msg:
-                break
-            self.send_pipe.send({
-                'event': 'command',
-                'player': self.player_id,
-                'command': msg,
-                'game_id': self.game_id
-            })
-            self.game.handle_action(self.player_id, msg)
 
     def create_new_game(self):
         try:
             self.game_id, self.game = self.game_manager.create_game()
             self.player_id = 1
-            self.game.add_player(self.player_id, self.conn)
+            # pass the file object so the game uses the same buffered writer/reader
+            self.game.add_player(self.player_id, self.conn_file)
             self.send_message({
                 "type": "GAME_CREATED",
                 "payload": {
@@ -262,10 +237,12 @@ class ClientHandler(threading.Thread):
                 }
             })
         except Exception as e:
-            print(f"Error listing games: {e}")
+            print(f"Error listando los juegos: {e}")
+
 
 
 def start_server(port=PORT, max_players=MAX_PLAYERS, turn_timeout=TURN_TIMEOUT):
+    # Pipes para logging
     recv_pipe, send_pipe = Pipe(duplex=False)
     log_path = os.path.join(os.path.dirname(__file__), '..', 'logs', 'game.log')
     logger_proc = Process(target=logger_process, args=(recv_pipe, log_path), daemon=True)
@@ -286,9 +263,9 @@ def start_server(port=PORT, max_players=MAX_PLAYERS, turn_timeout=TURN_TIMEOUT):
             s.bind(sa)
             s.listen(10)
             sockets.append(s)
-            print(f"Listening on {sa} (family {af})")
+            print(f"Escuchando en  {sa} (family {af})")
         except Exception as e:
-            print(f"Could not bind to {sa}: {e}")
+            print(f"No se puedo unir {sa}: {e}")
 
     game_manager = GameManager(max_players, turn_timeout)
 
@@ -298,17 +275,17 @@ def start_server(port=PORT, max_players=MAX_PLAYERS, turn_timeout=TURN_TIMEOUT):
             rlist, _, _ = select.select(sockets, [], [])
             for s in rlist:
                 conn, addr = s.accept()
-                print(f"New connection from {addr}")
+                print(f"Nueva conexión desde {addr}")
                 handler = ClientHandler(conn, addr, game_manager, send_pipe)
                 handler.start()
     except Exception as e:
-        print(f"Server error: {e}", file=sys.stderr)
+        print(f"Error del servidor: {e}", file=sys.stderr)
     finally:
         for s in sockets:
             s.close()
         logger_proc.terminate()
         logger_proc.join()
-        print("Server stopped.")
+        print("Server parado.")
 
 
 if __name__ == "__main__":
