@@ -45,15 +45,33 @@ class GameManager:
                     return game_id, game
         return None, None
 
+    def _run_game(self, game_id, game):
+        """Wrapper to run game.start_game and ensure cleanup when it ends"""
+        try:
+            game.start_game()
+        except Exception as e:
+            print(f"Error running game {game_id}: {e}", file=sys.stderr)
+        finally:
+            with self.lock:
+                self.games.pop(game_id, None)
+                self.waiting_games.pop(game_id, None)
+            print(f"Juego terminado: {game_id}")
 
     def start_game(self, game_id):
-        """Move game from waiting to active games"""
+        """Move game from waiting to active games and start it in a new thread"""
+        game = None
         with self.lock:
             if game_id in self.waiting_games:
                 game = self.waiting_games.pop(game_id)
                 self.games[game_id] = game
-                game.start_game()
-                print(f"Juego comenzado: {game_id}")
+
+        if not game:
+            return
+
+        print(f"Starting game thread for {game_id}")
+        t = threading.Thread(target=self._run_game, args=(game_id, game), daemon=True)
+        t.start()
+        print(f"Juego comenzado (threaded): {game_id}")
 
     def remove_game(self, game_id):
         """Remove finished game"""
@@ -143,11 +161,11 @@ class ClientHandler(threading.Thread):
                         })
                     except Exception:
                         pass
-                    # let the game process the action
+                    # let the game process the action in a background thread to avoid blocking the handler
                     try:
-                        self.game.handle_action(self.player_id, msg)
+                        threading.Thread(target=self.game.handle_action, args=(self.player_id, msg), daemon=True).start()
                     except Exception as e:
-                        print(f"Error handling action for player {self.player_id}: {e}", file=sys.stderr)
+                        print(f"Error dispatching action for player {self.player_id}: {e}", file=sys.stderr)
 
         except Exception as e:
             print(f"Error cliente {self.addr}: {e}", file=sys.stderr)

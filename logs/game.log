@@ -59,3 +59,7 @@
 2025-10-28T16:20:35.401147 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "VERDE", "value": "6"}, "game_id": "22106f5a"}
 2025-11-01T11:30:00.359469 | {"event": "command", "player": 1, "command": {"action": "LEVANTAR"}, "game_id": "582d4abf"}
 2025-11-01T11:42:27.421972 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "ROJO", "value": "4"}, "game_id": "ceea440b"}
+2025-11-01T12:40:30.717859 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "AZUL", "value": "0"}, "game_id": "8eda768e"}
+2025-11-01T12:41:35.120442 | {"event": "command", "player": 1, "command": {"action": "PASAR"}, "game_id": "8eda768e"}
+2025-11-01T12:48:47.564182 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "ROJO", "value": "4"}, "game_id": "c65d377f"}
+2025-11-01T12:49:23.279199 | {"event": "command", "player": 2, "command": {"action": "JUEGO", "color": "ROJO", "value": "6"}, "game_id": "c65d377f"}
