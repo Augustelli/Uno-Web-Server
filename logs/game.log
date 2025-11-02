@@ -67,3 +67,43 @@
 2025-11-01T16:43:19.224337 | {"event": "command", "player": 2, "command": {"action": "JUEGO", "color": "AZUL", "value": "9"}, "game_id": "56462638"}
 2025-11-01T16:48:50.045226 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "VERDE", "value": "4"}, "game_id": "c3bfdd1e"}
 2025-11-01T16:49:01.988758 | {"event": "command", "player": 2, "command": {"action": "JUEGO", "color": "VERDE", "value": "5"}, "game_id": "c3bfdd1e"}
+2025-11-02T10:27:00.799642 | {"event": "command", "player": 2, "command": {"action": "JUEGO", "color": "AZUL", "value": "8"}, "game_id": "5b7a8762"}
+2025-11-02T10:27:19.843056 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "AMARILLO", "value": "5"}, "game_id": "5b7a8762"}
+2025-11-02T10:27:38.258677 | {"event": "command", "player": 2, "command": {"action": "JUEGO", "color": "AZUL", "value": "8"}, "game_id": "5b7a8762"}
+2025-11-02T10:28:02.558948 | {"event": "command", "player": 2, "command": {"action": "JUEGO", "color": "AZUL", "value": "3"}, "game_id": "5b7a8762"}
+2025-11-02T10:28:12.093021 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "AZUL", "value": "5"}, "game_id": "5b7a8762"}
+2025-11-02T10:28:34.865742 | {"event": "command", "player": 2, "command": {"action": "JUEGO", "color": "ROJO", "value": "5"}, "game_id": "5b7a8762"}
+2025-11-02T10:28:41.871409 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "ROJO", "value": "7"}, "game_id": "5b7a8762"}
+2025-11-02T10:28:51.910507 | {"event": "command", "player": 2, "command": {"action": "JUEGO", "color": "AZUL", "value": "8"}, "game_id": "5b7a8762"}
+2025-11-02T10:29:02.473915 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "ROJO", "value": "8"}, "game_id": "5b7a8762"}
+2025-11-02T10:29:18.665340 | {"event": "command", "player": 2, "command": {"action": "JUEGO", "color": "ROJO", "value": "0"}, "game_id": "5b7a8762"}
+2025-11-02T10:29:23.654318 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "ROJO", "value": "3"}, "game_id": "5b7a8762"}
+2025-11-02T10:29:47.766390 | {"event": "command", "player": 2, "command": {"action": "JUEGO", "color": "AZUL", "value": "7"}, "game_id": "5b7a8762"}
+2025-11-02T10:30:22.450843 | {"event": "command", "player": 1, "command": {"action": "LEVANTAR"}, "game_id": "5b7a8762"}
+2025-11-02T10:30:31.901653 | {"event": "command", "player": 1, "command": {"action": "PASAR"}, "game_id": "5b7a8762"}
+2025-11-02T10:30:43.786582 | {"event": "command", "player": 2, "command": {"action": "JUEGO", "color": "AZUL", "value": "7"}, "game_id": "5b7a8762"}
+2025-11-02T10:30:53.069192 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "AMARILLO", "value": "6"}, "game_id": "5b7a8762"}
+2025-11-02T10:30:58.612655 | {"event": "command", "player": 2, "command": {"action": "JUEGO", "color": "AZUL", "value": "3"}, "game_id": "5b7a8762"}
+2025-11-02T10:31:09.044493 | {"event": "command", "player": 1, "command": {"action": "LEVANTAR"}, "game_id": "5b7a8762"}
+2025-11-02T10:31:17.484247 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "AZUL", "value": "1"}, "game_id": "5b7a8762"}
+2025-11-02T10:31:26.566871 | {"event": "command", "player": 2, "command": {"action": "JUEGO", "color": "AZUL", "value": "7"}, "game_id": "5b7a8762"}
+2025-11-02T10:31:35.560446 | {"event": "command", "player": 1, "command": {"action": "LEVANTAR"}, "game_id": "5b7a8762"}
+2025-11-02T10:31:40.137469 | {"event": "command", "player": 1, "command": {"action": "PASAR"}, "game_id": "5b7a8762"}
+2025-11-02T10:31:45.689935 | {"event": "command", "player": 2, "command": {"action": "JUEGO", "color": "AZUL", "value": "8"}, "game_id": "5b7a8762"}
+2025-11-02T10:31:50.964907 | {"event": "command", "player": 1, "command": {"action": "LEVANTAR"}, "game_id": "5b7a8762"}
+2025-11-02T10:31:59.499272 | {"event": "command", "player": 1, "command": {"action": "PASAR"}, "game_id": "5b7a8762"}
+2025-11-02T10:32:04.651245 | {"event": "command", "player": 2, "command": {"action": "LEVANTAR"}, "game_id": "5b7a8762"}
+2025-11-02T10:32:11.800452 | {"event": "command", "player": 2, "command": {"action": "PASAR"}, "game_id": "5b7a8762"}
+2025-11-02T10:32:17.705717 | {"event": "command", "player": 1, "command": {"action": "LEVANTAR"}, "game_id": "5b7a8762"}
+2025-11-02T10:32:20.258054 | {"event": "command", "player": 1, "command": {"action": "PASAR"}, "game_id": "5b7a8762"}
+2025-11-02T10:32:33.442362 | {"event": "command", "player": 2, "command": {"action": "LEVANTAR"}, "game_id": "5b7a8762"}
+2025-11-02T10:32:36.401122 | {"event": "command", "player": 2, "command": {"action": "PASAR"}, "game_id": "5b7a8762"}
+2025-11-02T10:32:48.137546 | {"event": "command", "player": 1, "command": {"action": "LEVANTAR"}, "game_id": "5b7a8762"}
+2025-11-02T10:32:53.561587 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "AZUL", "value": "6"}, "game_id": "5b7a8762"}
+2025-11-02T10:33:08.289142 | {"event": "command", "player": 2, "command": {"action": "JUEGO", "color": "ROJO", "value": "6"}, "game_id": "5b7a8762"}
+2025-11-02T10:33:14.901377 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "ROJO", "value": "9"}, "game_id": "5b7a8762"}
+2025-11-02T10:33:20.235447 | {"event": "command", "player": 2, "command": {"action": "LEVANTAR"}, "game_id": "5b7a8762"}
+2025-11-02T10:33:22.649698 | {"event": "command", "player": 2, "command": {"action": "LEVANTAR"}, "game_id": "5b7a8762"}
+2025-11-02T10:33:26.791292 | {"event": "command", "player": 2, "command": {"action": "PASAR"}, "game_id": "5b7a8762"}
+2025-11-02T10:35:06.200832 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "ROJO", "value": "7"}, "game_id": "c3ae5a60"}
+2025-11-02T10:35:13.576757 | {"event": "command", "player": 2, "command": {"action": "JUEGO", "color": "VERDE", "value": "4"}, "game_id": "c3ae5a60"}
