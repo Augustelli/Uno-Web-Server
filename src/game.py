@@ -13,6 +13,7 @@ HOST = os.environ.get("HOST", "localhost")
 PORT = int(os.environ.get("PORT", 8090))
 MAX_PLAYERS = int(os.environ.get("MAX_PLAYERS", 2))
 TURN_TIMEOUT = int(os.environ.get("TURN_TIMEOUT", 300))
+CARDS_NUMBER = int(os.environ.get("CARDS_NUMBER", 7))
 
 
 class Card:
@@ -114,8 +115,8 @@ class Game:
         self.deck.shuffle()
         print("Mazo barajado.")
         for pid in self.player_conns:
-            self.hands[pid] = self.deck.draw(7)
-            print(f"Jugador {pid} recibe 7 cartas.")
+            self.hands[pid] = self.deck.draw(CARDS_NUMBER)
+            print(f"Jugador {pid} recibe {CARDS_NUMBER} cartas.")
         # Initialize discard pile
         top_card = self.deck.draw(1)
         print("Carta inicial para pila de descarte:", top_card)
@@ -149,7 +150,13 @@ class Game:
                 self.action_queue.task_done()
 
                 if player_id != current_player_id:
-                    self._send(current_conn, self._serialize({"type": "ERROR", "payload": "No es tu turno."}))
+                    with self.lock:
+                        offender_conn = self.player_conns.get(player_id)
+                    if offender_conn:
+                        self._send(offender_conn, self._serialize({
+                            "type": "ERROR",
+                            "payload": "No es tu turno."
+                        }))
                     continue
 
                 if msg["action"] == "JUEGO":

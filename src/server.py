@@ -1,23 +1,15 @@
-# server.py
 import socket
 import threading
 import sys
 import os
 import uuid
-from multiprocessing import Pipe, Process
 from typing import Any, Dict, Tuple, Optional
 import json
 from game import Game
-from logger import logger_process
-from dotenv import load_dotenv
+from logger import start_logging_process, configure_queue_logging_producer, get_bound_logger
 import select
+from config import HOST, PORT, MAX_PLAYERS, TURN_TIMEOUT
 
-load_dotenv()
-
-HOST = os.environ.get("HOST", "::")
-PORT = int(os.environ.get("PORT", 8090))
-MAX_PLAYERS = int(os.environ.get("MAX_PLAYERS", 2))
-TURN_TIMEOUT = int(os.environ.get("TURN_TIMEOUT", 300))
 
 
 class GameManager:
@@ -41,7 +33,6 @@ class GameManager:
             game = self.waiting_games.get(game_id)
             if not game:
                 return None, None
-            # capacidad libre
             if len(game.player_conns) < self.max_players:
                 return game_id, game
         return None, None
@@ -94,14 +85,14 @@ class ClientHandler(threading.Thread):
     Un hilo por cliente; UN SOLO loop que procesa cualquier acción.
     Usamos dos makefiles: reader (r) y writer (w), texto UTF-8, line-buffered.
     """
-    def __init__(self, conn: socket.socket, addr, game_manager: GameManager, send_pipe):
+    def __init__(self, conn: socket.socket, addr, game_manager: GameManager, log):
         super().__init__(daemon=True)
         self.conn = conn
         self.reader = conn.makefile(mode="r", buffering=1, encoding="utf-8", newline="\n")
         self.writer = conn.makefile(mode="w", buffering=1, encoding="utf-8", newline="\n")
         self.addr = addr
         self.game_manager = game_manager
-        self.send_pipe = send_pipe
+        self.log = log
         self.game_id: Optional[str] = None
         self.player_id: Optional[int] = None
         self.game: Optional[Game] = None
@@ -135,6 +126,7 @@ class ClientHandler(threading.Thread):
 
     # ------------ main loop ------------
     def run(self) -> None:
+        bound = self.log.bind(game_id=self.game_id or "-", player_id=self.player_id or "-")
         try:
             while True:
                 msg = self.receive_message()
@@ -142,20 +134,21 @@ class ClientHandler(threading.Thread):
                     break
 
                 action = msg.get("action")
+                bound.info(f"Received action: {action}")
 
                 # --- Menú/lobby ---
                 if action == "LIST_GAMES":
                     self.list_games()
-                    # seguimos el loop; NO leemos otra línea inmediata aquí
                     continue
 
                 if action == "CREATE_GAME":
                     self.create_new_game()
-                    # seguimos el loop; el cliente puede esperar jugadores o enviar comandos luego
+                    bound = self.log.bind(game_id=self.game_id or "-", player_id=self.player_id or "1")
                     continue
 
                 if action == "JOIN":
                     self.join_game(msg)
+                    bound = self.log.bind(game_id=self.game_id or "-", player_id=self.player_id or "1")
                     continue
 
                 # --- Acciones de juego (si ya estamos en uno) ---
@@ -174,15 +167,15 @@ class ClientHandler(threading.Thread):
                         # encolar acción (sin threads extra)
                         self.game.handle_action(self.player_id, msg)
                     except Exception as e:
-                        print(f"Error dispatching action for player {self.player_id}: {e}", file=sys.stderr)
+                        bound.exception(f"Error dispatching action for player {self.player_id}: {e}", file=sys.stderr)
                 else:
                     # Si no estamos en juego y acción desconocida
                     self.send_message({"type": "ERROR", "payload": "Comando inválido en lobby"})
 
         except Exception as e:
-            print(f"Error cliente {self.addr}: {e}", file=sys.stderr)
+            bound.exception(f"Error cliente {self.addr}: {e}", file=sys.stderr)
         finally:
-            # cleanup
+            bound.info(f"Conexión cerrada: {self.addr}")
             try:
                 if self.game and self.player_id is not None:
                     try:
@@ -272,29 +265,32 @@ class ClientHandler(threading.Thread):
 
 def start_server(port: int = PORT, max_players: int = MAX_PLAYERS, turn_timeout: int = TURN_TIMEOUT) -> None:
     # Pipes para logging
-    recv_pipe, send_pipe = Pipe(duplex=False)
     log_path = os.path.join(os.path.dirname(__file__), '..', 'logs', 'game.log')
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
-    logger_proc = Process(target=logger_process, args=(recv_pipe, log_path), daemon=True)
-    logger_proc.start()
+    queue = start_logging_process(log_path)
+    configure_queue_logging_producer(queue)
+    log = get_bound_logger("server")
 
     addrinfos = socket.getaddrinfo(
         HOST, port, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM, flags=socket.AI_PASSIVE
     )
+    log.info("Iniciando servidor en %s:%d", HOST, port)
     sockets = []
     for af, socktype, proto, canonname, sa in addrinfos:
         try:
             s = socket.socket(af, socktype, proto)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             if af == socket.AF_INET6:
+                log.info("Configurando socket IPv6 para aceptar IPv4 también")
                 s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
             s.bind(sa)
             s.listen(128)
             sockets.append(s)
-            print(f"Escuchando en {sa} (family {af})")
+            log.info(f"Escuchando en {sa} (family {af})")
         except Exception as e:
-            print(f"No se pudo unir {sa}: {e}", file=sys.stderr)
+            log.info(f"No se pudo unir {sa}: {e}", file=sys.stderr)
 
+    log.info("Servidor listo para aceptar conexiones. Iniciando GameManager...")
     game_manager = GameManager(max_players, turn_timeout)
 
     try:
@@ -302,20 +298,18 @@ def start_server(port: int = PORT, max_players: int = MAX_PLAYERS, turn_timeout:
             rlist, _, _ = select.select(sockets, [], [])
             for s in rlist:
                 conn, addr = s.accept()
-                print(f"Nueva conexión desde {addr}")
-                handler = ClientHandler(conn, addr, game_manager, send_pipe)
+                log.info(f"Nueva conexión desde {addr}")
+                handler = ClientHandler(conn, addr, game_manager, log)
                 handler.start()
     except Exception as e:
-        print(f"Error del servidor: {e}", file=sys.stderr)
+        log.error(f"Error del servidor: {e}", file=sys.stderr)
     finally:
         for s in sockets:
             try:
                 s.close()
             except Exception:
                 pass
-        logger_proc.terminate()
-        logger_proc.join()
-        print("Server parado.")
+        log.info("Server parado.")
 
 
 if __name__ == "__main__":

@@ -1,13 +1,7 @@
 import socket
 import threading
-import os
-from dotenv import load_dotenv
 import json
-
-load_dotenv()
-
-HOST = os.environ.get("HOST", "localhost")
-PORT = int(os.environ.get("PORT", 8090))
+from config import HOST, PORT
 
 
 class UnoClient:

@@ -1,0 +1,11 @@
+services:
+  server:
+    image: uno-server:1
+    container_name: uno-server
+    ports:
+      - "8080:8080"
+    depends_on:
+
+
+  client1:
+  client2:

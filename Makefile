@@ -1,7 +1,5 @@
 .PHONY: run build clean deploy
 
-run:
-	python3 -m http.server $(PORT)
 run-server:
 	python3 src/server.py --port $(PORT) --max-players $(MAX-PLAYERS) --turn-timeout $(TURN-TIMEOUT)
 run-client:
@@ -23,5 +21,6 @@ PORT?= 8000
 MAX-PLAYERS?= 2
 TURN-TIMEOUT?= 300
 HOST?=127.0.0.1
+CARDS_NUMBER?=2
 
 

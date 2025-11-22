@@ -107,3 +107,95 @@
 2025-11-02T10:33:26.791292 | {"event": "command", "player": 2, "command": {"action": "PASAR"}, "game_id": "5b7a8762"}
 2025-11-02T10:35:06.200832 | {"event": "command", "player": 1, "command": {"action": "JUEGO", "color": "ROJO", "value": "7"}, "game_id": "c3ae5a60"}
 2025-11-02T10:35:13.576757 | {"event": "command", "player": 2, "command": {"action": "JUEGO", "color": "VERDE", "value": "4"}, "game_id": "c3ae5a60"}
+2025-11-02 10:53:43 INFO MainProcess MainThread server [game=- player=-] Iniciando servidor en :::8090
+2025-11-02 10:53:43 INFO MainProcess MainThread server [game=- player=-] Configurando socket IPv6 para aceptar IPv4 también
+2025-11-02 10:53:43 INFO MainProcess MainThread server [game=- player=-] Escuchando en ('::', 8090, 0, 0) (family 10)
+2025-11-02 10:53:43 INFO MainProcess MainThread server [game=- player=-] Servidor listo para aceptar conexiones. Iniciando GameManager...
+2025-11-08 10:49:09 INFO MainProcess MainThread server [game=- player=-] Iniciando servidor en :::8090
+2025-11-08 10:49:09 INFO MainProcess MainThread server [game=- player=-] Configurando socket IPv6 para aceptar IPv4 también
+2025-11-08 10:49:09 INFO MainProcess MainThread server [game=- player=-] Escuchando en ('::', 8090, 0, 0) (family 10)
+2025-11-08 10:49:09 INFO MainProcess MainThread server [game=- player=-] Servidor listo para aceptar conexiones. Iniciando GameManager...
+2025-11-08 10:49:37 INFO MainProcess MainThread server [game=- player=-] Nueva conexión desde ('::ffff:127.0.0.1', 48564, 0, 0)
+2025-11-08 10:49:47 INFO MainProcess Thread-5 server [game=- player=-] Received action: LIST_GAMES
+2025-11-08 10:49:55 INFO MainProcess Thread-5 server [game=- player=-] Received action: CREATE_GAME
+2025-11-08 10:50:10 INFO MainProcess MainThread server [game=- player=-] Nueva conexión desde ('::ffff:127.0.0.1', 42040, 0, 0)
+2025-11-08 10:50:11 INFO MainProcess Thread-6 server [game=- player=-] Received action: LIST_GAMES
+2025-11-08 10:50:16 INFO MainProcess Thread-6 server [game=- player=-] Received action: JOIN
+2025-11-08 10:50:40 INFO MainProcess Thread-6 server [game=4240bbdf player=2] Received action: JUEGO
+2025-11-08 10:51:03 INFO MainProcess Thread-5 server [game=4240bbdf player=1] Received action: JUEGO
+2025-11-08 10:51:13 INFO MainProcess Thread-5 server [game=4240bbdf player=1] Received action: JUEGO
+2025-11-08 10:55:14 INFO MainProcess MainThread server [game=- player=-] Iniciando servidor en :::8090
+2025-11-08 10:55:14 INFO MainProcess MainThread server [game=- player=-] Configurando socket IPv6 para aceptar IPv4 también
+2025-11-08 10:55:14 INFO MainProcess MainThread server [game=- player=-] Escuchando en ('::', 8090, 0, 0) (family 10)
+2025-11-08 10:55:14 INFO MainProcess MainThread server [game=- player=-] Servidor listo para aceptar conexiones. Iniciando GameManager...
+2025-11-08 10:55:23 INFO MainProcess MainThread server [game=- player=-] Nueva conexión desde ('::ffff:127.0.0.1', 48422, 0, 0)
+2025-11-08 10:55:24 INFO MainProcess Thread-5 server [game=- player=-] Received action: CREATE_GAME
+2025-11-08 10:55:27 INFO MainProcess MainThread server [game=- player=-] Nueva conexión desde ('::ffff:127.0.0.1', 48434, 0, 0)
+2025-11-08 10:55:29 INFO MainProcess Thread-6 server [game=- player=-] Received action: LIST_GAMES
+2025-11-08 10:55:31 INFO MainProcess Thread-6 server [game=- player=-] Received action: JOIN
+2025-11-08 10:55:53 INFO MainProcess Thread-6 server [game=c2179c7b player=2] Received action: JUEGO
+2025-11-08 10:56:22 INFO MainProcess Thread-6 server [game=c2179c7b player=2] Received action: JUEGO
+2025-11-08 10:57:09 INFO MainProcess MainThread server [game=- player=-] Iniciando servidor en :::8090
+2025-11-08 10:57:09 INFO MainProcess MainThread server [game=- player=-] Configurando socket IPv6 para aceptar IPv4 también
+2025-11-08 10:57:09 INFO MainProcess MainThread server [game=- player=-] Escuchando en ('::', 8090, 0, 0) (family 10)
+2025-11-08 10:57:09 INFO MainProcess MainThread server [game=- player=-] Servidor listo para aceptar conexiones. Iniciando GameManager...
+2025-11-22 10:23:24 INFO MainProcess MainThread server [game=- player=-] Iniciando servidor en 127.0.0.1:8000
+2025-11-22 10:23:24 INFO MainProcess MainThread server [game=- player=-] Escuchando en ('127.0.0.1', 8000) (family 2)
+2025-11-22 10:23:24 INFO MainProcess MainThread server [game=- player=-] Servidor listo para aceptar conexiones. Iniciando GameManager...
+2025-11-22 10:23:36 INFO MainProcess MainThread server [game=- player=-] Nueva conexión desde ('127.0.0.1', 56076)
+2025-11-22 10:23:38 INFO MainProcess Thread-1 server [game=- player=-] Received action: LIST_GAMES
+2025-11-22 10:23:44 INFO MainProcess Thread-1 server [game=- player=-] Received action: CREATE_GAME
+2025-11-22 10:23:48 INFO MainProcess MainThread server [game=- player=-] Nueva conexión desde ('127.0.0.1', 35464)
+2025-11-22 10:23:50 INFO MainProcess Thread-2 server [game=- player=-] Received action: LIST_GAMES
+2025-11-22 10:23:52 INFO MainProcess Thread-2 server [game=- player=-] Received action: JOIN
+2025-11-22 10:24:07 INFO MainProcess Thread-1 server [game=c99ddb92 player=1] Received action: JUEGO
+2025-11-22 10:24:52 INFO MainProcess MainThread server [game=- player=-] Iniciando servidor en 127.0.0.1:8000
+2025-11-22 10:24:52 INFO MainProcess MainThread server [game=- player=-] Escuchando en ('127.0.0.1', 8000) (family 2)
+2025-11-22 10:24:52 INFO MainProcess MainThread server [game=- player=-] Servidor listo para aceptar conexiones. Iniciando GameManager...
+2025-11-22 10:25:00 INFO MainProcess MainThread server [game=- player=-] Nueva conexión desde ('127.0.0.1', 43386)
+2025-11-22 10:25:01 INFO MainProcess Thread-5 server [game=- player=-] Received action: CREATE_GAME
+2025-11-22 10:25:04 INFO MainProcess MainThread server [game=- player=-] Nueva conexión desde ('127.0.0.1', 42090)
+2025-11-22 10:25:06 INFO MainProcess Thread-6 server [game=- player=-] Received action: LIST_GAMES
+2025-11-22 10:25:08 INFO MainProcess Thread-6 server [game=- player=-] Received action: JOIN
+2025-11-22 10:25:31 INFO MainProcess Thread-5 server [game=5dc7b6c1 player=1] Received action: PASAR
+2025-11-22 10:25:39 INFO MainProcess Thread-5 server [game=5dc7b6c1 player=1] Received action: LEVANTAR
+2025-11-22 10:25:44 INFO MainProcess Thread-5 server [game=5dc7b6c1 player=1] Received action: PASAR
+2025-11-22 10:25:56 INFO MainProcess Thread-6 server [game=5dc7b6c1 player=2] Received action: JUEGO
+2025-11-22 10:26:04 INFO MainProcess Thread-5 server [game=5dc7b6c1 player=1] Received action: LEVANTAR
+2025-11-22 10:26:09 INFO MainProcess Thread-5 server [game=5dc7b6c1 player=1] Received action: JUEGO
+2025-11-22 10:26:17 INFO MainProcess Thread-6 server [game=5dc7b6c1 player=2] Received action: LEVANTAR
+2025-11-22 10:26:22 INFO MainProcess Thread-6 server [game=5dc7b6c1 player=2] Received action: JUEGO
+2025-11-22 10:27:06 INFO MainProcess Thread-5 server [game=5dc7b6c1 player=1] Received action: LEVANTAR
+2025-11-22 10:27:13 INFO MainProcess Thread-5 server [game=5dc7b6c1 player=1] Received action: JUEGO
+2025-11-22 10:27:21 INFO MainProcess Thread-6 server [game=5dc7b6c1 player=2] Received action: LEVANTAR
+2025-11-22 10:27:54 INFO MainProcess MainThread server [game=- player=-] Iniciando servidor en 127.0.0.1:8000
+2025-11-22 10:27:54 INFO MainProcess MainThread server [game=- player=-] Escuchando en ('127.0.0.1', 8000) (family 2)
+2025-11-22 10:27:54 INFO MainProcess MainThread server [game=- player=-] Servidor listo para aceptar conexiones. Iniciando GameManager...
+2025-11-22 10:28:04 INFO MainProcess MainThread server [game=- player=-] Nueva conexión desde ('127.0.0.1', 33290)
+2025-11-22 10:28:06 INFO MainProcess Thread-5 server [game=- player=-] Received action: CREATE_GAME
+2025-11-22 10:28:09 INFO MainProcess MainThread server [game=- player=-] Nueva conexión desde ('127.0.0.1', 33306)
+2025-11-22 10:28:10 INFO MainProcess Thread-6 server [game=- player=-] Received action: LIST_GAMES
+2025-11-22 10:28:11 INFO MainProcess Thread-6 server [game=- player=-] Received action: JOIN
+2025-11-22 10:28:20 INFO MainProcess Thread-5 server [game=4708e77e player=1] Received action: LEVANTAR
+2025-11-22 10:28:33 INFO MainProcess Thread-5 server [game=4708e77e player=1] Received action: PASAR
+2025-11-22 10:28:39 INFO MainProcess Thread-6 server [game=4708e77e player=2] Received action: LEVANTAR
+2025-11-22 10:28:45 INFO MainProcess Thread-6 server [game=4708e77e player=2] Received action: PASAR
+2025-11-22 10:28:48 INFO MainProcess Thread-5 server [game=4708e77e player=1] Received action: LEVANTAR
+2025-11-22 10:28:52 INFO MainProcess Thread-5 server [game=4708e77e player=1] Received action: PASAR
+2025-11-22 10:28:58 INFO MainProcess Thread-6 server [game=4708e77e player=2] Received action: LEVANTAR
+2025-11-22 10:29:07 INFO MainProcess Thread-6 server [game=4708e77e player=2] Received action: JUEGO
+2025-11-22 10:29:15 INFO MainProcess Thread-5 server [game=4708e77e player=1] Received action: LEVANTAR
+2025-11-22 10:29:21 INFO MainProcess Thread-5 server [game=4708e77e player=1] Received action: PASAR
+2025-11-22 10:29:30 INFO MainProcess Thread-6 server [game=4708e77e player=2] Received action: JUEGO
+2025-11-22 10:29:40 INFO MainProcess Thread-5 server [game=4708e77e player=1] Received action: LEVANTAR
+2025-11-22 10:29:47 INFO MainProcess Thread-5 server [game=4708e77e player=1] Received action: PASAR
+2025-11-22 10:29:54 INFO MainProcess Thread-6 server [game=4708e77e player=2] Received action: LEVANTAR
+2025-11-22 10:29:57 INFO MainProcess Thread-6 server [game=4708e77e player=2] Received action: PASAR
+2025-11-22 10:30:06 INFO MainProcess Thread-5 server [game=4708e77e player=1] Received action: LEVANTAR
+2025-11-22 10:30:14 INFO MainProcess Thread-5 server [game=4708e77e player=1] Received action: JUEGO
+2025-11-22 10:30:22 INFO MainProcess Thread-6 server [game=4708e77e player=2] Received action: JUEGO
+2025-11-22 10:30:25 INFO MainProcess Thread-5 server [game=4708e77e player=1] Received action: LEVANTAR
+2025-11-22 10:30:26 INFO MainProcess Thread-5 server [game=4708e77e player=1] Received action: PASAR
+2025-11-22 10:30:32 INFO MainProcess Thread-6 server [game=4708e77e player=2] Received action: JUEGO
+2025-11-22 10:30:36 INFO MainProcess Thread-6 server [game=4708e77e player=2] Conexión cerrada: ('127.0.0.1', 33306)
+2025-11-22 10:30:41 INFO MainProcess Thread-5 server [game=4708e77e player=1] Conexión cerrada: ('127.0.0.1', 33290)
