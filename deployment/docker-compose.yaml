@@ -3,10 +3,14 @@ services:
     image: uno-server:1
     container_name: uno-server
     ports:
-      - "8080:8080"
+      - 8081:8080
     env_file:
       - .env
     restart: unless-stopped
+    networks:
+      - default
+    depends_on:
+      - db
 
   client1:
     build:
@@ -23,6 +27,8 @@ services:
     depends_on:
       - server
     restart: unless-stopped
+    networks:
+      - default
 
   client2:
     build:
@@ -39,6 +45,34 @@ services:
     depends_on:
       - server
     restart: unless-stopped
+    networks:
+      - default
+
+  db:
+    image: postgres:18-trixie
+    container_name: postgres-db
+    restart: always
+#    ports:
+#      - 5432:5432
+    shm_size: 128mb
+    volumes:
+      - type: tmpfs
+        target: /dev/shm
+        tmpfs:
+          size: 134217728 # 128*2^20 bytes = 128Mb
+    environment:
+      POSTGRES_PASSWORD: Sup3rSecret0
+    networks:
+      - default
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+      - default
 
 networks:
   default:

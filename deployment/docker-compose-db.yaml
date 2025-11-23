@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:18-trixie
+    container_name: postgres-db
+    restart: always
+    ports:
+      - 5432:5432
+    shm_size: 128mb
+    volumes:
+      - type: tmpfs
+        target: /dev/shm
+        tmpfs:
+          size: 134217728 # 128*2^20 bytes = 128Mb
+    environment:
+      POSTGRES_PASSWORD: Sup3rSecret0
+    networks:
+      - default
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - 8090:8080
+    networks:
+      - default
+    depends_on:
+      - db
+
+networks:
+  default:
+    name: uno-network

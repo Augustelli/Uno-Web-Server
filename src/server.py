@@ -6,9 +6,9 @@ import uuid
 from typing import Any, Dict, Tuple, Optional
 import json
 from game import Game
-from logger import start_logging_process, configure_queue_logging_producer, get_bound_logger
+from logger import start_db_logging_process, configure_queue_logging_producer, get_bound_logger
 import select
-from config import HOST, PORT, MAX_PLAYERS, TURN_TIMEOUT
+from config import HOST, PORT, MAX_PLAYERS, TURN_TIMEOUT, LOG_DB_DSN
 
 
 
@@ -264,12 +264,23 @@ class ClientHandler(threading.Thread):
 
 
 def start_server(port: int = PORT, max_players: int = MAX_PLAYERS, turn_timeout: int = TURN_TIMEOUT) -> None:
-    # Pipes para logging
-    log_path = os.path.join(os.path.dirname(__file__), '..', 'logs', 'game.log')
-    os.makedirs(os.path.dirname(log_path), exist_ok=True)
-    queue = start_logging_process(log_path)
-    configure_queue_logging_producer(queue)
     log = get_bound_logger("server")
+
+    dsn = LOG_DB_DSN
+    if dsn:
+        try:
+            queue = start_db_logging_process(dsn, also_console=True)
+            configure_queue_logging_producer(queue)
+            log.logger.info("DB logging process started")
+        except Exception as e:
+            # fallback to console logging
+            import logging
+            logging.basicConfig(level=logging.INFO)
+            log.logger.warning("Failed to start DB logging process: %s", e)
+    else:
+        import  logging
+        logging.basicConfig(level=logging.INFO)
+        log.logger.info("No LOG_DB_DSN provided, using console logging")
 
     addrinfos = socket.getaddrinfo(
         HOST, port, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM, flags=socket.AI_PASSIVE
