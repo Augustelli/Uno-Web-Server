@@ -4,8 +4,42 @@ services:
     container_name: uno-server
     ports:
       - "8080:8080"
-    depends_on:
-
+    env_file:
+      - .env
+    restart: unless-stopped
 
   client1:
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile.client
+    image: uno-client:latest
+    container_name: uno-client-1
+    env_file:
+      - .env
+    environment:
+      - SERVER_HOST=server
+      - SERVER_PORT=8080
+      - CLIENT_NAME=client1
+    depends_on:
+      - server
+    restart: unless-stopped
+
   client2:
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile.client
+    image: uno-client:latest
+    container_name: uno-client-2
+    env_file:
+      - .env
+    environment:
+      - SERVER_HOST=server
+      - SERVER_PORT=8080
+      - CLIENT_NAME=client2
+    depends_on:
+      - server
+    restart: unless-stopped
+
+networks:
+  default:
+    name: uno-network
