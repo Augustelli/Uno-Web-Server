@@ -3,3 +3,4 @@
 logs/
 .idea/workspace.xml
 .env
+deployment/postgres-data/

@@ -5,15 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="22d42244-dec7-42bb-9b7f-9ee5bd23a462" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/deployment/Dockerfile.client" beforeDir="false" afterPath="$PROJECT_DIR$/deployment/Dockerfile.client" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/deployment/Dockerfile.server" beforeDir="false" afterPath="$PROJECT_DIR$/deployment/Dockerfile.server" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/deployment/docker-compose-db.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/deployment/docker-compose-db.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/deployment/docker-compose.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/server.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
