@@ -7,10 +7,7 @@ services:
       - 5432:5432
     shm_size: 128mb
     volumes:
-      - type: tmpfs
-        target: /dev/shm
-        tmpfs:
-          size: 134217728 # 128*2^20 bytes = 128Mb
+      - ./postgres-data:/var/lib/postgresql
     environment:
       POSTGRES_PASSWORD: Sup3rSecret0
     networks:

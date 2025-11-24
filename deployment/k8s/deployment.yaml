@@ -1,0 +1,183 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: uno-server
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: uno-server
+type: Opaque
+stringData:
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: changeme
+  POSTGRES_DB: game_db
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-registry-secret
+  namespace: uno-server
+type: kubernetes.io/dockerconfigjson
+stringData:
+  .dockerconfigjson: |
+    {
+      "auths": {
+        "ghcr.io": {
+          "username": "augustelli",
+          "password": "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",
+          "auth": "YXVndXN0ZWxsaTpnaHBfN284eDgyMFM0cW5nN09pUWRuUHlKMTcxcmMyblpGMHRCWmpT"
+        }
+      }
+    }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-postgres
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/data/uno-postgres
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-postgres
+  namespace: uno-server
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: manual
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-db
+  namespace: uno-server
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+      name: postgres
+  selector:
+    app: postgres
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+  namespace: uno-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:18-trixie
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+          ports:
+            - containerPort: 5432
+              name: postgres
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: pgdata
+          persistentVolumeClaim:
+            claimName: pvc-postgres
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: uno-server-svc
+  namespace: uno-server
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: uno-server
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uno-server-deployment
+  namespace: uno-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uno-server
+  template:
+    metadata:
+      labels:
+        app: uno-server
+    spec:
+      containers:
+        - name: uno-server
+          image: ghcr.io/augustelli/uno-web-server:server-1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+            - name: DATABASE_URL
+              value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres-db:5432/$(POSTGRES_DB)"
+          ports:
+            - containerPort: 8080
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10

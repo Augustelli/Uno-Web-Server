@@ -1,0 +1,13 @@
+services:
+
+  client:
+    image: uno-client:1
+    container_name: cliente-uno
+    environment:
+      HOST: server
+      PORT: "8000"
+    networks:
+      - default
+networks:
+  default:
+    name: uno-network

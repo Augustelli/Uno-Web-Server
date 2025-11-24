@@ -1,9 +1,8 @@
-python-dotenv==1.1.1
 iniconfig==2.3.0
 packaging==25.0
 pluggy==1.6.0
+psycopg==3.2.13
 psycopg-pool==3.2.8
 Pygments==2.19.2
-pytest==8.4.1
+python-dotenv==1.1.1
 typing_extensions==4.15.0
-psycopg==3.2.13

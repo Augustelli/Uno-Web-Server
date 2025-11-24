@@ -1,14 +1,16 @@
+import http
+import os
 import socket
+import socketserver
 import threading
 import sys
-import os
 import uuid
 from typing import Any, Dict, Tuple, Optional
 import json
 from game import Game
 from logger import start_db_logging_process, configure_queue_logging_producer, get_bound_logger
 import select
-from config import HOST, PORT, MAX_PLAYERS, TURN_TIMEOUT, LOG_DB_DSN
+from config import HOST, PORT, MAX_PLAYERS, TURN_TIMEOUT, LOG_DB_DSN, DB_TABLE_CREATION_QUERY
 
 
 
@@ -262,10 +264,38 @@ class ClientHandler(threading.Thread):
         except Exception as e:
             print(f"Error listando los juegos: {e}", file=sys.stderr)
 
+def ensure_logs_table(dsn: str | None = None) -> None:
+    """
+    Create the logs table if it does not exist. Safe: prints errors and returns if DB unreachable
+    or psycopg not installed. This is called at import time if a DSN is present.
+    """
+    dsn =  LOG_DB_DSN
+    if not dsn:
+        return
+    try:
+        import psycopg
+    except Exception as e:
+        print(f"Warning: psycopg is not available, skipping logs table creation: {e}", file=sys.stderr)
+        return
+
+    try:
+        with psycopg.connect(dsn) as conn:
+            with conn.cursor() as cur:
+                cur.execute(DB_TABLE_CREATION_QUERY)
+            conn.commit()
+    except Exception as e:
+        print(f"Warning: could not create logs table: {e}", file=sys.stderr)
+
+
+if LOG_DB_DSN :
+    try:
+        ensure_logs_table(LOG_DB_DSN)
+    except Exception:
+        # keep import-time side effects safe: swallow unexpected exceptions
+        pass
 
 def start_server(port: int = PORT, max_players: int = MAX_PLAYERS, turn_timeout: int = TURN_TIMEOUT) -> None:
     log = get_bound_logger("server")
-
     dsn = LOG_DB_DSN
     if dsn:
         try:
@@ -322,6 +352,30 @@ def start_server(port: int = PORT, max_players: int = MAX_PLAYERS, turn_timeout:
                 pass
         log.info("Server parado.")
 
+
+# class HealthHandler(http.server.BaseHTTPRequestHandler):
+#     def do_GET(self):
+#         if self.path == "/health":
+#             payload = json.dumps({"status": "ok"}).encode("utf-8")
+#             self.send_response(200)
+#             self.send_header("Content-Type", "application/json")
+#             self.send_header("Content-Length", str(len(payload)))
+#             self.end_headers()
+#             self.wfile.write(payload)
+#         else:
+#             self.send_error(404, "Not Found")
+#
+#     def log_message(self, format, *args):
+#         # silence default stdout logging
+#         return
+#
+# # Starts the health HTTP server in a background daemon thread
+# def start_health_server(host: str, port: int) -> threading.Thread:
+#     server = socketserver.ThreadingTCPServer((host, port), HealthHandler)
+#     server.daemon_threads = True
+#     thread = threading.Thread(target=server.serve_forever, daemon=True)
+#     thread.start()
+#     return thread
 
 if __name__ == "__main__":
     start_server()

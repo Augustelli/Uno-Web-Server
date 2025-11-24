@@ -1,65 +1,46 @@
 services:
+
   server:
     image: uno-server:1
     container_name: uno-server
     ports:
-      - 8081:8080
-    env_file:
-      - .env
+      - 8000:8000
+    environment:
+      PORT: 8000
+      MAX_PLAYERS: 2
+      TURN_TIMEOUT: 120
+      CARDS_NUMBER: 2
+      HOST: 0.0.0.0
+      LOG_DB_DSN: "dbname=game_db user=postgres password=Sup3rSecret0 host=db port=5432"
+      DB_TABLE_CREATION_QUERY: "
+      CREATETABLE IF NOT EXISTS logs (
+        id bigseria  created_at timestamptz NOT NULL DEFAULT now(),
+        level text NOT NULL,
+        logger_name text,
+        process_name text,
+        thread_name text,
+        message text,
+        game_id text,
+        player_id text,
+        extra jsonb
+      );
+      CREATE INDEX IF NOT EXISTS idx_logs_created_at ON logs (created_at DESC);
+      "
     restart: unless-stopped
     networks:
       - default
     depends_on:
       - db
 
-  client1:
-    build:
-      context: .
-      dockerfile: deployment/Dockerfile.client
-    image: uno-client:latest
-    container_name: uno-client-1
-    env_file:
-      - .env
-    environment:
-      - SERVER_HOST=server
-      - SERVER_PORT=8080
-      - CLIENT_NAME=client1
-    depends_on:
-      - server
-    restart: unless-stopped
-    networks:
-      - default
-
-  client2:
-    build:
-      context: .
-      dockerfile: deployment/Dockerfile.client
-    image: uno-client:latest
-    container_name: uno-client-2
-    env_file:
-      - .env
-    environment:
-      - SERVER_HOST=server
-      - SERVER_PORT=8080
-      - CLIENT_NAME=client2
-    depends_on:
-      - server
-    restart: unless-stopped
-    networks:
-      - default
-
   db:
     image: postgres:18-trixie
     container_name: postgres-db
     restart: always
-#    ports:
-#      - 5432:5432
+    ports:
+      - 5432:5432
     shm_size: 128mb
     volumes:
-      - type: tmpfs
-        target: /dev/shm
-        tmpfs:
-          size: 134217728 # 128*2^20 bytes = 128Mb
+      - ./postgres-data:/var/lib/postgresql
     environment:
       POSTGRES_PASSWORD: Sup3rSecret0
     networks:
@@ -70,9 +51,14 @@ services:
     container_name: adminer
     restart: always
     ports:
-      - 8080:8080
+      - 8090:8080
     networks:
       - default
+    depends_on:
+      - db
+
+volumes:
+    postgres-data:
 
 networks:
   default:
