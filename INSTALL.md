@@ -1,101 +1,144 @@
-# Instalación y despliegue
+# INSTALL.md
 
-## Prerrequisitos
-- Sistema: Linux
-- `python` 3.11+ y `pip`
-- `docker` y `docker-compose` (opcional)
-- Acceso al repositorio (rama `develop`)
+Guía rápida (en español) para **clonar**, **instalar** y **lanzar** el servidor y el cliente de UNO. Incluye ejecución directa con Python y despliegue con Docker/Docker Compose.
 
-## Estructura recomendada
-Asegúrate de que el contexto de build contenga al menos:
-- `requirements.txt`
-- `src/` (contiene `client.py`, `config.py`, demás módulos)
-- `deployment/Dockerfile.client`
-- `.env.example`
+---
 
-Ejemplo:
-- `requirements.txt`
-- `src/client.py`
-- `src/config.py`
-- `deployment/Dockerfile.client`
-- `.env` (local, no en repo)
+## 1) Requisitos
 
-## Pasos para desarrollo local
-1. Crear y activar virtualenv:
-\`\`\`bash
-python3 -m venv .venv
+* **Python 3.11+**
+* (Opcional) **pipx/virtualenv** para aislar dependencias
+* (Opcional) **Docker** y **Docker Compose** para despliegue en contenedores
+
+---
+
+## 2) Clonar el repositorio
+
+```bash
+git clone https://github.com/Augustelli/Uno-Web-Server.git
+cd Uno-Web-Server
+```
+
+---
+
+## 3) Variables de entorno (configuración)
+
+Crea un archivo **`.env`** en la raíz o exporta estas variables en tu entorno. Valores sugeridos:
+
+```ini
+PORT=8000
+MAX_PLAYERS=2
+TURN_TIMEOUT=120
+HOST=0.0.0.0
+CARDS_NUMBER=2
+LOG_DB_DSN=dbname=game_db user=postgres password=Sup3rSecret0 host=localhost port=5432
+DB_TABLE_CREATION_QUERY="
+CREATETABLE IF NOT EXISTS logs (
+  id bigseria  created_at timestamptz NOT NULL DEFAULT now(),
+  level text NOT NULL,
+  logger_name text,
+  process_name text,
+  thread_name text,
+  message text,
+  game_id text,
+  player_id text,
+  extra jsonb
+);
+CREATE INDEX IF NOT EXISTS idx_logs_created_at ON logs (created_at DESC);
+"
+```
+
+> Si no defines el `.env`, la app usa estos mismos **valores por defecto**.
+
+---
+
+## 4) Instalación (entorno Python)
+
+### 4.1 Crear entorno virtual (opcional, recomendado)
+
+```bash
+python -m venv .venv
+# Linux/Mac:
 source .venv/bin/activate
-\`\`\`
-2. Instalar dependencias:
-\`\`\`bash
+# Windows (PowerShell):
+# .\.venv\Scripts\Activate.ps1
+```
+
+### 4.2 Instalar dependencias
+
+```bash
 pip install -r requirements.txt
-\`\`\`
-3. Crear archivo de entorno:
-\`\`\`bash
-cp .env.example .env
-# editar .env según necesidad (PORT, HOST, MAX_PLAYERS, TURN_TIMEOUT, CARDS_NUMBER)
-\`\`\`
-4. Ejecutar la aplicación cliente (ejemplo):
-\`\`\`bash
-python src/client.py
-\`\`\`
+```
 
-Nota: el proyecto puede usar `python-dotenv` en `src/config.py` para cargar `.env`.
+---
 
-## Construir y ejecutar con Docker (cliente)
-1. Desde la raíz del repositorio (muy importante, el contexto de build debe incluir `src/` y `requirements.txt`):
-\`\`\`bash
-docker build -f deployment/Dockerfile.client -t uno-client:latest .
-\`\`\`
-2. Ejecutar con archivo de entorno:
-\`\`\`bash
-docker run --env-file .env -it --rm --name uno-client uno-client:latest
-\`\`\`
+## 5) Ejecución con Python (desarrollo local)
 
-Si expones puertos, usa `-p HOST_PORT:CONTAINER_PORT` o variables del `.env`.
+En **dos terminales** distintas:
 
-## Nota sobre el error de `COPY ../src/config.py /app`
-Error típico:
-\`\`\`
-failed to compute cache key: "/src/config.py": not found
-\`\`\`
-Causa: Docker solo puede copiar archivos dentro del *build context*; usar `..` sale del contexto y falla. Solución:
-- Ejecutar `docker build` desde la raíz del repo (donde están `requirements.txt` y `src/`).
-- En el `Dockerfile` usar rutas dentro del contexto, por ejemplo:
-\`\`\`dockerfile
-COPY requirements.txt /app/requirements.txt
-COPY src/ /app/
-\`\`\`
-No usar `COPY ../...`.
+### Servidor
 
-## Buenas prácticas
-- No incluir `.env` en el repositorio; añadir `\`.env\`` a ` .gitignore`.
-- Mantener ` .env.example\`` con las variables necesarias.
-- No "hornear" secretos en la imagen; pasar variables en tiempo de ejecución con `--env-file` o `docker-compose`.
-- Si el cliente y servidor necesitan imágenes separadas, crear `deployment/Dockerfile.server` y `deployment/Dockerfile.client` y construir ambas desde la raíz.
+```bash
+python3 src/server.py
+```
 
-## Despliegue con docker-compose (opcional)
-Ejemplo mínimo en `docker-compose.yml` (colocarlo en la raíz):
-\`\`\`yaml
-version: "3.8"
-services:
-  client:
-    build:
-      context: .
-      dockerfile: deployment/Dockerfile.client
-    env_file:
-      - .env
-    ports:
-      - "${PORT}:${PORT}"
-\`\`\`
-Ejecutar:
-\`\`\`bash
-docker compose up --build
-\`\`\`
+Verás logs como “Escuchando en … / Servidor listo…”.
 
-## Troubleshooting rápido
-- Si `COPY` falla: verificar ruta y contexto (ejecutar `pwd` antes de `docker build`).
-- Si falta dependencia: verificar `requirements.txt` y `pip install`.
-- Logs del contenedor: `docker logs -f uno-client`
+### Cliente (CLI)
 
-Fin.
+```bash
+python3 src/client.py
+```
+
+Sigue el menú interactivo para **listar**, **crear** o **unirte** a una partida.
+
+> Puedes abrir **varias** terminales cliente para simular varios jugadores.
+
+---
+
+## 6) Despliegue con Docker / Docker Compose
+
+### 6.1 Docker Compose (recomendado)
+
+Desde la raíz del repo:
+
+```bash
+docker compose -f deployment/docker-compose.yaml up -d
+```
+
+Esto levantará los servicios definidos en `deployment/docker-compose.yaml` (e.g., servidor, y cualquier dependencia de logging si está incluida).
+
+### 6.2 Construir imágenes manualmente
+
+Desde la raíz del repo:
+
+```bash
+docker build -f deployment/Dockerfile.server -t ghcr.io/Augustelli/Uno-Web-Server:server-1 .
+docker build -f deployment/Dockerfile.client -t ghcr.io/Augustelli/Uno-Web-Server:server-1 .
+```
+
+> **Nota:** normalmente se usarían **tags diferentes** para servidor y cliente (por ejemplo `:server-1` y `:client-1`).
+> Si deseas diferenciarlas, puedes usar:
+>
+> ```bash
+> docker build -f deployment/Dockerfile.server -t ghcr.io/Augustelli/Uno-Web-Server:server-1 .
+> docker build -f deployment/Dockerfile.client -t ghcr.io/Augustelli/Uno-Web-Server:client-1 .
+> ```
+
+---
+
+7) Usar Makefile (opcional)
+
+Si tienes `make` instalado, puedes usar los siguientes comandos:
+```bash
+
+make run-server
+make run-client:
+make build
+make run-docker-server
+make run-docker-client
+make run-docker-db
+make setup
+make clean
+
+```

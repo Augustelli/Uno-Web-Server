@@ -150,7 +150,6 @@ def configure_queue_logging_producer(queue: Queue) -> None:
     root.addHandler(qh)
 
 
-# Convenience adapters similar to previous file (optional)
 def get_logger(name: Optional[str] = None) -> logging.LoggerAdapter:
     base = logging.getLogger(name or __name__)
     return logging.LoggerAdapter(base, {"game_id": "-", "player_id": "-"})

@@ -1,7 +1,5 @@
 import http
-import os
 import socket
-import socketserver
 import threading
 import sys
 import uuid
