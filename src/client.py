@@ -166,7 +166,9 @@ class UnoClient:
                 for i, game in enumerate(games, 1):
                     print(f"{i}. ID: {game['game_id']} - "
                           f"Jugadores: {game['players']}/{game['max_players']} - "
-                          f"Espacios libres: {game['slots_available']}")
+                          f"Espacios libres: {game['slots_available']} - "
+                          f"Jugadores: {game['players_names']}"
+                          )
                 return games
             else:
                 print("Error obteniendo lista de juegos")

@@ -85,6 +85,7 @@ class Game:
         self.max_players = max_players
         self.turn_timeout = turn_timeout
         self.player_conns: Dict[int, 'socket.socket'] = {}
+        self.player_names: Dict[int, str] = {}
         self.hands: Dict[int, List[Card]] = {}
         self.deck = Deck()
         self.discard_pile: List[Card] = []
@@ -94,8 +95,9 @@ class Game:
         self._stop_event = threading.Event()
         self.lock = threading.Lock()
 
-    def add_player(self, player_id: int, conn) -> None:
+    def add_player(self, name : str, player_id: int, conn) -> None:
         self.player_conns[player_id] = conn
+        self.player_names[player_id] = name
         self.hands[player_id] = []
 
     def _send(self, conn, payload) -> None:

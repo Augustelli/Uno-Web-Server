@@ -17,8 +17,8 @@ def _str(name, default):
 
 
 PORT = _int("PORT", 8000)
-HEALTH_PORT = _int("HEALTH_PORT", 8001)
-MAX_PLAYERS = _int("MAX_PLAYERS", 2)
+MIN_PLAYERS = _int("MAX_PLAYERS", 2)
+MAX_PLAYERS = _int("MAX_PLAYERS", 10)
 TURN_TIMEOUT = _int("TURN_TIMEOUT", 120)
 HOST = _str("HOST", "127.0.0.1")
 CARDS_NUMBER = _int("CARDS_NUMBER", 2)

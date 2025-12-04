@@ -7,7 +7,7 @@ import json
 from game import Game
 from logger import start_db_logging_process, configure_queue_logging_producer, get_bound_logger
 import select
-from config import HOST, PORT, MAX_PLAYERS, TURN_TIMEOUT, LOG_DB_DSN, DB_TABLE_CREATION_QUERY
+from config import HOST, PORT, MAX_PLAYERS, TURN_TIMEOUT, LOG_DB_DSN, DB_TABLE_CREATION_QUERY, MIN_PLAYERS
 
 
 class GameManager:
@@ -73,6 +73,7 @@ class GameManager:
                 games_list.append({
                     "game_id": gid,
                     "players": players,
+                    "players_names": game.player_names,
                     "max_players": game.max_players,
                     "slots_available": game.max_players - players
                 })
@@ -152,22 +153,13 @@ class ClientHandler(threading.Thread):
 
     # ------------ main loop ------------
     def run(self) -> None:
-        # require name at connection start
         if not self._perform_name_handshake():
-            # client disconnected or failed handshake
             try:
                 for f in (self.reader, self.writer):
-                    try:
-                        f.close()
-                    except Exception:
-                        pass
-                try:
+                    f.close()
                     self.conn.close()
-                except Exception:
-                    pass
             finally:
                 return
-
         bound = self.log.bind(game_id=self.game_id or "-", player_id=self.player_id or "-", player_name=self.name or "-")
         try:
             while True:
@@ -267,7 +259,7 @@ class ClientHandler(threading.Thread):
         with self.game.lock:
             self.player_id = max(self.game.player_conns.keys(), default=0) + 1
             # pasamos SOLO writer al Game
-            self.game.add_player(self.player_id, self.writer)
+            self.game.add_player(name, self.player_id, self.writer)
             players_needed = self.game.max_players - len(self.game.player_conns)
             should_start = (players_needed == 0)
 
@@ -293,15 +285,14 @@ class ClientHandler(threading.Thread):
             if requested is not None:
                 try:
                     requested = int(requested)
-                    # validate reasonable bounds (2..16)
-                    if requested < 2:
-                        requested = 2
-                    elif requested > 16:
-                        requested = 16
+                    if requested < MIN_PLAYERS:
+                        requested = MIN_PLAYERS
+                    elif requested > MAX_PLAYERS:
+                        requested = MAX_PLAYERS
                 except Exception:
                     requested = None
 
-            # accept optional name in create payload (override handshake name if provided)
+
             if isinstance(msg, dict):
                 name = msg.get("name")
                 if isinstance(name, str) and name.strip():
@@ -310,7 +301,7 @@ class ClientHandler(threading.Thread):
             self.game_id, self.game = self.game_manager.create_game(max_players=requested)
             with self.game.lock:
                 self.player_id = 1
-                self.game.add_player(self.player_id, self.writer)
+                self.game.add_player(self.name, self.player_id, self.writer)
                 players_needed = self.game.max_players - 1
                 should_start = (players_needed == 0)
 
