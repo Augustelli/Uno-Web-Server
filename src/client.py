@@ -17,6 +17,8 @@ class UnoClient:
         self.current_turn = None
         self.players = []
         self.connected = False
+        self.name = None
+
 
     def connect(self):
         try:
@@ -30,6 +32,40 @@ class UnoClient:
         except Exception as e:
             print(f"Error conectando al servidor: {e}")
             return False
+
+    def perform_name_handshake(self) -> bool:
+        """
+        Prompt user for a name, send SET_NAME and wait for NAME_SET reply.
+        Returns True if name accepted, False on disconnect or repeated failure.
+        """
+        while self.connected:
+            name = input("Introduce tu nombre (max 64 chars): ").strip()
+            if not name:
+                print("Nombre no puede estar vacío.")
+                continue
+            name = name[:64]
+            try:
+                self.send_message({"action": "SET_NAME", "name": name})
+            except Exception as e:
+                print(f"Error enviando nombre: {e}")
+                return False
+
+            resp = self.receive_message()
+            if not resp:
+                print("No response from server during name handshake.")
+                return False
+            if resp.get("type") == "NAME_SET":
+                self.name = resp.get("payload", {}).get("name", name)
+                print(f"Nombre establecido en servidor: {self.name}")
+                return True
+            elif resp.get("type") == "ERROR":
+                print(f"Server rejected name: {resp.get('payload')}")
+                # loop and ask again
+            else:
+                # Unexpected response, inform and retry
+                print(f"Unexpected response during name handshake: {resp}")
+        return False
+
 
     def disconnect(self):
         try:
@@ -140,7 +176,7 @@ class UnoClient:
             print(f"Error listando juegos: {e}")
             return []
 
-    def create_game(self, player_number : int = 4):
+    def create_game(self, player_number : int ):
         try:
             self.send_message({"action": "CREATE_GAME", "max_players": player_number})
             data = self.receive_message()
@@ -355,6 +391,8 @@ class UnoClient:
         if not self.connect():
             return
         try:
+            if not self.perform_name_handshake():
+                return
             if self.game_setup():
                 self.play_game()
         finally:

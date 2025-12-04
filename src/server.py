@@ -95,6 +95,7 @@ class ClientHandler(threading.Thread):
         self.game_id: Optional[str] = None
         self.player_id: Optional[int] = None
         self.game: Optional[Game] = None
+        self.name: Optional[str] = None  # client display name
 
     # ------------ IO helpers ------------
     def send_message(self, msg: dict) -> None:
@@ -123,9 +124,51 @@ class ClientHandler(threading.Thread):
             return None
         return obj
 
+    # ------------ handshake ------------
+    def _perform_name_handshake(self) -> bool:
+        """
+        Require client to send {"action": "SET_NAME", "name": "<name>"} before any other action.
+        Returns True if a valid name was set, False if client disconnected or invalid sequence.
+        """
+        # Prompt is optional; server will insist until valid SET_NAME or disconnect.
+        while True:
+            msg = self.receive_message()
+            if not isinstance(msg, dict):
+                return False
+            action = msg.get("action")
+            if action == "SET_NAME":
+                name = msg.get("name")
+                if isinstance(name, str) and name.strip():
+                    self.name = name.strip()[:64]
+                    self.send_message({"type": "NAME_SET", "payload": {"name": self.name}})
+                    return True
+                else:
+                    self.send_message({"type": "ERROR", "payload": "Invalid name; send non-empty string"})
+                    continue
+            else:
+                # Ask the client to set name first
+                self.send_message({"type": "ERROR", "payload": "Please set name first with action SET_NAME"})
+                continue
+
     # ------------ main loop ------------
     def run(self) -> None:
-        bound = self.log.bind(game_id=self.game_id or "-", player_id=self.player_id or "-")
+        # require name at connection start
+        if not self._perform_name_handshake():
+            # client disconnected or failed handshake
+            try:
+                for f in (self.reader, self.writer):
+                    try:
+                        f.close()
+                    except Exception:
+                        pass
+                try:
+                    self.conn.close()
+                except Exception:
+                    pass
+            finally:
+                return
+
+        bound = self.log.bind(game_id=self.game_id or "-", player_id=self.player_id or "-", player_name=self.name or "-")
         try:
             while True:
                 msg = self.receive_message()
@@ -135,6 +178,17 @@ class ClientHandler(threading.Thread):
                 action = msg.get("action")
                 bound.info(f"Received action: {action}")
 
+                # allow changing name later
+                if action == "SET_NAME":
+                    name = msg.get("name")
+                    if isinstance(name, str) and name.strip():
+                        self.name = name.strip()[:64]
+                        self.send_message({"type": "NAME_SET", "payload": {"name": self.name}})
+                        bound = self.log.bind(game_id=self.game_id or "-", player_id=self.player_id or "-", player_name=self.name or "-")
+                    else:
+                        self.send_message({"type": "ERROR", "payload": "Invalid name"})
+                    continue
+
                 # --- Menú/lobby ---
                 if action == "LIST_GAMES":
                     self.list_games()
@@ -142,12 +196,12 @@ class ClientHandler(threading.Thread):
 
                 if action == "CREATE_GAME":
                     self.create_new_game(msg)
-                    bound = self.log.bind(game_id=self.game_id or "-", player_id=self.player_id or "1")
+                    bound = self.log.bind(game_id=self.game_id or "-", player_id=self.player_id or "1", player_name=self.name or "-")
                     continue
 
                 if action == "JOIN":
                     self.join_game(msg)
-                    bound = self.log.bind(game_id=self.game_id or "-", player_id=self.player_id or "1")
+                    bound = self.log.bind(game_id=self.game_id or "-", player_id=self.player_id or "1", player_name=self.name or "-")
                     continue
 
                 # --- Acciones de juego (si ya estamos en uno) ---
@@ -198,6 +252,11 @@ class ClientHandler(threading.Thread):
 
     # ------------ lobby actions ------------
     def join_game(self, msg: Dict[str, Any]) -> None:
+        # accept optional name in join payload (override handshake name if provided)
+        name = msg.get("name")
+        if isinstance(name, str) and name.strip():
+            self.name = name.strip()[:64]
+
         game_id = msg.get("game_id")
         self.game_id, self.game = self.game_manager.join_game(game_id)
 
@@ -217,10 +276,11 @@ class ClientHandler(threading.Thread):
             "payload": {
                 "game_id": self.game_id,
                 "player_id": self.player_id,
+                "player_name": self.name,
                 "players_needed": players_needed
             }
         })
-        print(f"Jugador {self.player_id} entró al juego {self.game_id}")
+        print(f"Jugador {self.player_id} ({self.name}) entró al juego {self.game_id}")
 
         if should_start:
             self.game_manager.start_game(self.game_id)
@@ -241,6 +301,12 @@ class ClientHandler(threading.Thread):
                 except Exception:
                     requested = None
 
+            # accept optional name in create payload (override handshake name if provided)
+            if isinstance(msg, dict):
+                name = msg.get("name")
+                if isinstance(name, str) and name.strip():
+                    self.name = name.strip()[:64]
+
             self.game_id, self.game = self.game_manager.create_game(max_players=requested)
             with self.game.lock:
                 self.player_id = 1
@@ -253,11 +319,12 @@ class ClientHandler(threading.Thread):
                 "payload": {
                     "game_id": self.game_id,
                     "player_id": self.player_id,
+                    "player_name": self.name,
                     "players_needed": players_needed,
                     "max_players": self.game.max_players
                 }
             })
-            print(f"Player {self.player_id} created and joined game {self.game_id} (max_players={self.game.max_players})")
+            print(f"Player {self.player_id} ({self.name}) created and joined game {self.game_id} (max_players={self.game.max_players})")
 
             if should_start:
                 self.game_manager.start_game(self.game_id)
