@@ -17,7 +17,7 @@ def _str(name, default):
 
 
 PORT = _int("PORT", 8000)
-MIN_PLAYERS = _int("MAX_PLAYERS", 2)
+MIN_PLAYERS = _int("MIN_PLAYERS", 2)
 MAX_PLAYERS = _int("MAX_PLAYERS", 10)
 TURN_TIMEOUT = _int("TURN_TIMEOUT", 120)
 HOST = _str("HOST", "127.0.0.1")

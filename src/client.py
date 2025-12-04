@@ -1,7 +1,7 @@
 import socket
 import threading
 import json
-from config import HOST, PORT
+from config import HOST, PORT, MAX_PLAYERS, MIN_PLAYERS
 
 
 class UnoClient:
@@ -256,9 +256,10 @@ class UnoClient:
                         print("Por favor ingresa un número válido.")
 
             elif choice == '2':
-                number_players = input("Ingresa el número máximo de jugadores (2-10): ").strip()
-                if not number_players.isdigit() or not (2 <= int(number_players) <= 10):
+                number_players = input(f"Ingresa el número máximo de jugadores {str(MIN_PLAYERS)} - {str(MAX_PLAYERS)}: ").strip()
+                if not number_players.isdigit() or not (MIN_PLAYERS<= int(number_players) <= MAX_PLAYERS):
                     print("Número de jugadores inválido. Usando valor por defecto de 4.")
+                    number_players = 4
                 if self.create_game(int(number_players)):
                     return True
 

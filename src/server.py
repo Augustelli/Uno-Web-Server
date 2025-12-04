@@ -11,7 +11,7 @@ from config import HOST, PORT, MAX_PLAYERS, TURN_TIMEOUT, LOG_DB_DSN, DB_TABLE_C
 
 
 class GameManager:
-    def __init__(self, max_players: int, turn_timeout: int):
+    def __init__(self, max_players: int = MAX_PLAYERS, turn_timeout: int = TURN_TIMEOUT):
         self.games: Dict[str, Game] = {}           # activos
         self.waiting_games: Dict[str, Game] = {}   # esperando jugadores
         self.max_players = max_players
