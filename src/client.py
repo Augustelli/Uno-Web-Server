@@ -140,9 +140,9 @@ class UnoClient:
             print(f"Error listando juegos: {e}")
             return []
 
-    def create_game(self):
+    def create_game(self, player_number : int = 4):
         try:
-            self.send_message({"action": "CREATE_GAME"})
+            self.send_message({"action": "CREATE_GAME", "max_players": player_number})
             data = self.receive_message()
 
             if data and data.get("type") == "GAME_CREATED":
@@ -218,7 +218,10 @@ class UnoClient:
                         print("Por favor ingresa un número válido.")
 
             elif choice == '2':
-                if self.create_game():
+                number_players = input("Ingresa el número máximo de jugadores (2-10): ").strip()
+                if not number_players.isdigit() or not (2 <= int(number_players) <= 10):
+                    print("Número de jugadores inválido. Usando valor por defecto de 4.")
+                if self.create_game(int(number_players)):
                     return True
 
             elif choice == '3':

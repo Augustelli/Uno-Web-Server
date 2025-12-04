@@ -1,4 +1,3 @@
-import http
 import socket
 import threading
 import sys
@@ -11,7 +10,6 @@ import select
 from config import HOST, PORT, MAX_PLAYERS, TURN_TIMEOUT, LOG_DB_DSN, DB_TABLE_CREATION_QUERY
 
 
-
 class GameManager:
     def __init__(self, max_players: int, turn_timeout: int):
         self.games: Dict[str, Game] = {}           # activos
@@ -20,12 +18,13 @@ class GameManager:
         self.turn_timeout = turn_timeout
         self.lock = threading.Lock()
 
-    def create_game(self) -> Tuple[str, Game]:
+    def create_game(self, max_players: Optional[int] = None) -> Tuple[str, Game]:
         with self.lock:
             game_id = str(uuid.uuid4())[:8]
-            game = Game(max_players=self.max_players, turn_timeout=self.turn_timeout)
+            use_max = max_players if max_players is not None else self.max_players
+            game = Game(max_players=use_max, turn_timeout=self.turn_timeout)
             self.waiting_games[game_id] = game
-            print(f"Juego creado: {game_id}")
+            print(f"Juego creado: {game_id} (max_players={use_max})")
             return game_id, game
 
     def join_game(self, game_id: str) -> Tuple[Optional[str], Optional[Game]]:
@@ -33,7 +32,7 @@ class GameManager:
             game = self.waiting_games.get(game_id)
             if not game:
                 return None, None
-            if len(game.player_conns) < self.max_players:
+            if len(game.player_conns) < game.max_players:
                 return game_id, game
         return None, None
 
@@ -74,8 +73,8 @@ class GameManager:
                 games_list.append({
                     "game_id": gid,
                     "players": players,
-                    "max_players": self.max_players,
-                    "slots_available": self.max_players - players
+                    "max_players": game.max_players,
+                    "slots_available": game.max_players - players
                 })
             return games_list
 
@@ -142,7 +141,7 @@ class ClientHandler(threading.Thread):
                     continue
 
                 if action == "CREATE_GAME":
-                    self.create_new_game()
+                    self.create_new_game(msg)
                     bound = self.log.bind(game_id=self.game_id or "-", player_id=self.player_id or "1")
                     continue
 
@@ -210,7 +209,7 @@ class ClientHandler(threading.Thread):
             self.player_id = max(self.game.player_conns.keys(), default=0) + 1
             # pasamos SOLO writer al Game
             self.game.add_player(self.player_id, self.writer)
-            players_needed = self.game_manager.max_players - len(self.game.player_conns)
+            players_needed = self.game.max_players - len(self.game.player_conns)
             should_start = (players_needed == 0)
 
         self.send_message({
@@ -226,13 +225,27 @@ class ClientHandler(threading.Thread):
         if should_start:
             self.game_manager.start_game(self.game_id)
 
-    def create_new_game(self) -> None:
+    def create_new_game(self, msg: Optional[Dict[str, Any]] = None) -> None:
         try:
-            self.game_id, self.game = self.game_manager.create_game()
+            requested = None
+            if isinstance(msg, dict):
+                requested = msg.get("max_players")
+            if requested is not None:
+                try:
+                    requested = int(requested)
+                    # validate reasonable bounds (2..16)
+                    if requested < 2:
+                        requested = 2
+                    elif requested > 16:
+                        requested = 16
+                except Exception:
+                    requested = None
+
+            self.game_id, self.game = self.game_manager.create_game(max_players=requested)
             with self.game.lock:
                 self.player_id = 1
                 self.game.add_player(self.player_id, self.writer)
-                players_needed = self.game_manager.max_players - 1
+                players_needed = self.game.max_players - 1
                 should_start = (players_needed == 0)
 
             self.send_message({
@@ -240,10 +253,11 @@ class ClientHandler(threading.Thread):
                 "payload": {
                     "game_id": self.game_id,
                     "player_id": self.player_id,
-                    "players_needed": players_needed
+                    "players_needed": players_needed,
+                    "max_players": self.game.max_players
                 }
             })
-            print(f"Player {self.player_id} created and joined game {self.game_id}")
+            print(f"Player {self.player_id} created and joined game {self.game_id} (max_players={self.game.max_players})")
 
             if should_start:
                 self.game_manager.start_game(self.game_id)
@@ -261,7 +275,6 @@ class ClientHandler(threading.Thread):
             })
         except Exception as e:
             print(f"Error listando los juegos: {e}", file=sys.stderr)
-
 def ensure_logs_table(dsn: str | None = None) -> None:
     """
     Create the logs table if it does not exist. Safe: prints errors and returns if DB unreachable
@@ -350,29 +363,6 @@ def start_server(port: int = PORT, max_players: int = MAX_PLAYERS, turn_timeout:
         log.info("Server parado.")
 
 
-# class HealthHandler(http.server.BaseHTTPRequestHandler):
-#     def do_GET(self):
-#         if self.path == "/health":
-#             payload = json.dumps({"status": "ok"}).encode("utf-8")
-#             self.send_response(200)
-#             self.send_header("Content-Type", "application/json")
-#             self.send_header("Content-Length", str(len(payload)))
-#             self.end_headers()
-#             self.wfile.write(payload)
-#         else:
-#             self.send_error(404, "Not Found")
-#
-#     def log_message(self, format, *args):
-#         # silence default stdout logging
-#         return
-#
-# # Starts the health HTTP server in a background daemon thread
-# def start_health_server(host: str, port: int) -> threading.Thread:
-#     server = socketserver.ThreadingTCPServer((host, port), HealthHandler)
-#     server.daemon_threads = True
-#     thread = threading.Thread(target=server.serve_forever, daemon=True)
-#     thread.start()
-#     return thread
 
 if __name__ == "__main__":
     start_server()

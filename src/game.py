@@ -80,7 +80,7 @@ class Deck:
         self._build_deck()
 
 class Game:
-    def __init__(self, max_players: int = 4, turn_timeout: int = 90):
+    def __init__(self, max_players: int, turn_timeout: int = 90):
 
         self.max_players = max_players
         self.turn_timeout = turn_timeout
