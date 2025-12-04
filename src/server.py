@@ -289,7 +289,6 @@ if LOG_DB_DSN :
     try:
         ensure_logs_table(LOG_DB_DSN)
     except Exception:
-        # keep import-time side effects safe: swallow unexpected exceptions
         pass
 
 def start_server(port: int = PORT, max_players: int = MAX_PLAYERS, turn_timeout: int = TURN_TIMEOUT) -> None:
@@ -297,8 +296,8 @@ def start_server(port: int = PORT, max_players: int = MAX_PLAYERS, turn_timeout:
     dsn = LOG_DB_DSN
     if dsn:
         try:
-            queue = start_db_logging_process(dsn, also_console=True)
-            configure_queue_logging_producer(queue)
+            queue = start_db_logging_process(dsn, also_console=True)  # TODO Rever
+            configure_queue_logging_producer(queue)    # TODO Parametrizar cantidad de jugadores x partida.
             log.logger.info("DB logging process started")
         except Exception as e:
             # fallback to console logging

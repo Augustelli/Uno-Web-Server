@@ -53,6 +53,33 @@
 
   * Menú simple por consola.
   * Envía acciones y muestra los mensajes del servidor.
+```ini
+
+
++------------------+            TCP JSON-line            +---------------------+
+|   CLI Client     |  <--------------------------------> |      Server         |
+|  - input loop    |                                     | - accept sockets    |
+|  - listen thread |                                     | - ClientHandler(th) |
++------------------+                                     | - GameManager       |
+                                                         +----------+----------+
+                                                                    |
+                                                        start_game()| thread
+                                                                    v
+                                                         +-------------------+
+                                                         |       Game        |
+                                                         |  Queue[acciones]  |
+                                                         |  Lock (estado)    |
+                                                         |  _broadcast(...)  |
+                                                         +-------------------+
+
+                           logs (LogRecord) via mp.Queue
+                              +---------------------+
+                              v                     |
+                      +----------------+            |
+                      |  logger proc   | <----------+
+                      |  RotatingFile  |
+                      +----------------+
+```
 
 ---
 

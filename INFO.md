@@ -216,7 +216,7 @@
 
 ---
 
-# Mapa de temas → dónde y cómo los usás
+# Mapa de temas
 
 ## Concurrencia (multithreading)
 

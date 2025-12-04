@@ -6,8 +6,7 @@ import json
 from psycopg_pool import ConnectionPool
 
 _DEFAULT_BATCH_SIZE = 100
-_DEFAULT_FLUSH_INTERVAL = 1.0  # seconds
-
+_DEFAULT_FLUSH_INTERVAL = 1.0
 _pool: Optional[ConnectionPool] = None
 
 
@@ -20,10 +19,8 @@ def _ensure_pool(dsn: str) -> ConnectionPool:
 
 def _record_to_tuple(record: logging.LogRecord) -> Tuple:
     created = datetime.datetime.fromtimestamp(record.created, datetime.timezone.utc)
-    # Extract adapter extras if present
     game_id = getattr(record, "game_id", "-")
     player_id = getattr(record, "player_id", "-")
-    # Minimal extra: include remaining attributes that are JSON-serializable
     extra = {}
     for k, v in record.__dict__.items():
         if k in ("msg", "args", "levelname", "name", "processName", "threadName", "created", "msecs", "relativeCreated", "levelno", "stack_info", "exc_info"):
@@ -77,23 +74,14 @@ def logger_db_worker(queue: Queue, dsn: str, also_console: bool = False, batch_s
             record = None
 
         if record is None:
-            # Either sentinel or timeout; flush if buffer non-empty
             if buffer:
                 with pool.connection() as conn:
                     with conn.cursor() as cur:
                         cur.executemany(insert_sql, buffer)
                     conn.commit()
                 buffer.clear()
-
-            # If actual sentinel (explicit None), break
-            # We can detect sentinel by a special object; assume user sends a literal None as sentinel:
-            # On timeout record is also None so we can't distinguish; therefore rely on a second check: if queue is empty after flush then continue waiting.
             try:
-                # Peek: if sentinel present as last item, break; non-blocking
                 q_contents = False
-                # no standard peek - assume user will send a sentinel then return immediately; break now
-                # To avoid busy loop, continue waiting unless process terminated externally.
-                # Here we'll continue loop; if user wants to stop, they should send a dedicated sentinel object or terminate process.
                 pass
             except Exception:
                 pass
@@ -164,3 +152,7 @@ class BoundLogger(logging.LoggerAdapter):
 def get_bound_logger(name: Optional[str] = None, **kwargs) -> BoundLogger:
     base = logging.getLogger(name or __name__)
     return BoundLogger(base, {"game_id": "-", "player_id": "-", **kwargs})
+
+
+
+# TODO Modificar esto con la autenticación de usuario para saber si puede o no jugar.
