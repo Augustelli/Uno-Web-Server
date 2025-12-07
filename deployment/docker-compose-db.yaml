@@ -13,6 +13,16 @@ services:
     networks:
       - default
 
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_URI: postgresql://postgres:Sup3rSecret0@db/game_db?sslmode=disable
+      DATA_SOURCE_USER: postgres
+      DATA_SOURCE_PASS: Sup3rSecret0
+    depends_on:
+      - db
+
   adminer:
     image: adminer
     container_name: adminer
@@ -40,6 +50,25 @@ services:
     networks:
       - default
 
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    container_name: prometheus
+    restart: unless-stopped
+    networks:
+      - default
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=7d"
+
   vllm:
     image: vllm/vllm-openai:latest
     container_name: vllm_service
@@ -48,7 +77,7 @@ services:
     environment:
       - VLLM_HOST=0.0.0.0
       - VLLM_PORT=8000
-      - HF_HOME=/vllm_cache
+      - HUGGING_FACE_HUB_TOKEN=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
     command: [
       "--model", "Qwen/Qwen2.5-1.5B-Instruct",
       "--host", "0.0.0.0",
@@ -58,7 +87,8 @@ services:
       "--gpu-memory-utilization", "0.8",
       "--disable-log-stats",
       "--trust-remote-code",
-      "--enforce-eager"
+      "--enforce-eager",
+      "--api-key", "EMPTY"
     ]
 
 
@@ -93,6 +123,7 @@ services:
 
 volumes:
     postgres-data:
+    prometheus-data:
     grafana-data:
     n8n_data:
 networks:

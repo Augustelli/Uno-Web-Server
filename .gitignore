@@ -1,4 +1,5 @@
 .idea/
+.idea/workspace.xml
 .venv/
 logs/
 .idea/workspace.xml

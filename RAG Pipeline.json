@@ -1,0 +1,169 @@
+{
+  "name": "RAG Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH target_game AS (\n    SELECT game_id, started_at, ended_at, max_players, winner_player, total_turns\n    FROM games\n    WHERE\n        ({{ $json[\"game_id\"] ? \"game_id = '\" + $json[\"game_id\"] + \"'\" : \"true\" }})\n    ORDER BY started_at DESC\n    LIMIT 1\n)\nSELECT\n    tg.game_id,\n    tg.started_at,\n    tg.ended_at,\n    tg.max_players,\n    tg.winner_player,\n    tg.total_turns,\n    ev.ts,\n    ev.player_id,\n    ev.player_name,\n    ev.event_type,\n    ev.card,\n    ev.extra,\n    '{{ $json.body.question }}' AS question   -- 👈 columna constante con la pregunta\nFROM target_game tg\nLEFT JOIN game_events ev\n    ON ev.game_id = tg.game_id\nORDER BY ev.ts ASC;\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        160,
+        -288
+      ],
+      "id": "e9bd2a1b-1426-4ee3-8af2-1b6a31e1c05e",
+      "name": "Execute a SQL query1",
+      "credentials": {
+        "postgres": {
+          "id": "GCVuRsBk8ZXQJ1fg",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ia-completion",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -48,
+        -288
+      ],
+      "id": "5f43bc3a-d905-4beb-ab3d-cf2e6f6eb87a",
+      "name": "Webhook1",
+      "webhookId": "9ee159da-9bdf-4b18-b39e-dc66fea79645"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = items.map(item => item.json);\n\nif (rows.length === 0) {\n  return [{\n    json: {\n      error: \"No se encontraron datos de partida para analizar.\"\n    }\n  }];\n}\n\n// Datos generales de la partida (de la primera fila)\nconst g = rows[0];\n\nlet gameText = \"Partida: \" + g.game_id +  \" Inicio: \"  + g.started_at + \"Fin: \" + g.ended_at + \"Jugadores máximos: \" + g.max_players + \"Ganador (player_id relativo): \" + g.winner_player  +\" Turnos registrados (aprox): \" + g.total_turns + \" Eventos de la partida (en orden cronológico):\";\n\nfor (const ev of rows) {\n  if (!ev.ts) continue;\n  gameText += `- ${ev.ts} | event=${ev.event_type}`;\n  if (ev.player_id !== null && ev.player_id !== undefined) {\n    gameText += `, player_id=${ev.player_id} | `;\n  }\n  if (ev.player_name) {\n    gameText += `, name=${ev.player_name} | `;\n  }\n  if (ev.card) {\n    gameText += `, card=${ev.card} | `;\n  }\n  gameText += \"  |  \";\n}\n\nconst question = $input.first().json.question || \"Dame un resumen de la partida.\";\n\nconst systemPrompt =\"Eres un analista experto en partidas de UNO. Responde SIEMPRE en español, de forma clara, ordenada y breve.Usa solamente la información de la partida que te doy como contexto\";\n\nconst userPrompt = \" A continuación tienes la información de una partida de UNO, incluyendo datos generales y la lista de eventos en orden cronológico. --- DATOS DE LA PARTIDA --- \" + gameText + \" --- FIN DATOS --- TAREA: \" + question;\n\nreturn [{\n  json: {\n    systemPrompt,\n    userPrompt,\n  },\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        -288
+      ],
+      "id": "562af6ab-2e26-45da-ab26-8b76b1d323e1",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://vllm:9000/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "=json",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "jsonBody": "{\n  \"model\": \"Qwen/Qwen2.5-1.5B-Instruct\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Eres un analista experto en partidas de UNO. Responde SIEMPRE en español, de forma clara, ordenada y breve.Usa solamente la información de la partida que te doy como contexto\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \" A continuación tienes la información de una partida de UNO, incluyendo datos generales y la lista de eventos en orden cronológico. --- DATOS DE LA PARTIDA --- Partida: 8fd18360 Inicio: 2025-12-07T15:49:37.077ZFin: nullJugadores máximos: 2Ganador (player_id relativo): null Turnos registrados (aprox): 7 Eventos de la partida (en orden cronológico):- 2025-12-07T15:49:37.077Z | event=start  |  - 2025-12-07T15:49:49.155Z | event=play, player_id=1, name=Augusto, card=AMARILLO 8  |  - 2025-12-07T15:49:59.970Z | event=play, player_id=2, card=AZUL 8  |  - 2025-12-07T15:50:05.806Z | event=draw, player_id=1, name=Augusto, card=VERDE 0  |  - 2025-12-07T15:50:07.337Z | event=pass, player_id=1, name=Augusto  |  - 2025-12-07T15:50:12.976Z | event=draw, player_id=2, card=AMARILLO 5  |  - 2025-12-07T15:50:18.899Z | event=pass, player_id=2  |  - 2025-12-07T15:50:26.649Z | event=draw, player_id=1, name=Augusto, card=AZUL 1  |  - 2025-12-07T15:50:30.784Z | event=play, player_id=1, name=Augusto, card=AZUL 1  |  - 2025-12-07T15:50:39.402Z | event=play, player_id=2, card=VERDE 1  |  - 2025-12-07T15:50:45.307Z | event=play, player_id=1, name=Augusto, card=VERDE 0  |  - 2025-12-07T15:50:49.756Z | event=draw, player_id=2, card=AZUL 0  |  - 2025-12-07T15:50:54.048Z | event=play, player_id=2, card=AZUL 0  |  - 2025-12-07T15:50:59.019Z | event=draw, player_id=1, name=Augusto, card=ROJO 6  |  - 2025-12-07T15:51:03.453Z | event=pass, player_id=1, name=Augusto  |  - 2025-12-07T15:51:09.749Z | event=draw, player_id=2, card=VERDE 7  |  - 2025-12-07T15:51:12.020Z | event=pass, player_id=2  |  - 2025-12-07T15:51:14.945Z | event=draw, player_id=1, name=Augusto, card=ROJO 3  |  - 2025-12-07T15:51:24.345Z | event=pass, player_id=1, name=Augusto  |  - 2025-12-07T15:51:29.928Z | event=draw, player_id=2, card=AMARILLO 1  |  - 2025-12-07T15:51:40.154Z | event=pass, player_id=2  |  - 2025-12-07T15:51:44.822Z | event=draw, player_id=1, name=Augusto, card=AMARILLO 7  |  - 2025-12-07T15:51:47.957Z | event=pass, player_id=1, name=Augusto  |  - 2025-12-07T15:51:50.115Z | event=draw, player_id=2, card=VERDE 6  |  - 2025-12-07T15:51:53.831Z | event=pass, player_id=2  |  - 2025-12-07T15:51:59.886Z | event=draw, player_id=1, name=Augusto, card=AZUL 9  |  - 2025-12-07T15:52:03.221Z | event=play, player_id=1, name=Augusto, card=AZUL 9  |  - 2025-12-07T15:54:03.222Z | event=timeout, player_id=2  |  - 2025-12-07T15:54:16.304Z | event=draw, player_id=1, name=Augusto, card=ROJO 0  |  - 2025-12-07T15:54:23.389Z | event=pass, player_id=1, name=Augusto  |  - 2025-12-07T15:54:30.489Z | event=draw, player_id=2, card=ROJO 1  |  - 2025-12-07T15:54:35.668Z | event=pass, player_id=2  |  - 2025-12-07T15:54:42.811Z | event=draw, player_id=1, name=Augusto, card=AMARILLO 6  |  - 2025-12-07T15:54:47.932Z | event=pass, player_id=1, name=Augusto  |   --- FIN DATOS --- TAREA: Explicame por qué ganó el jugador ganador y qué errores hubo.\"\n    }\n  ],\n  \"temperature\": 0.7,\n  \"stream\": false\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        576,
+        -288
+      ],
+      "id": "71479369-0c44-4f46-9854-fb2a32d2c896",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "SbNp7nTuldISiFAh",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.choices[0].message.content }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        784,
+        -288
+      ],
+      "id": "a918f3b2-7009-4066-8e49-7fac1ab72740",
+      "name": "Respond to Webhook1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Execute a SQL query1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "463abb73-768b-4954-8abe-ba9902b7fa84",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "169c122d7814772b468d1b5d8427d0286ef511b549c6a3552ebbba4a9fa374d3"
+  },
+  "id": "ApLU23v18zh8Wf0a",
+  "tags": []
+}
