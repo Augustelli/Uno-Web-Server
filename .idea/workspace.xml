@@ -5,10 +5,56 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="22d42244-dec7-42bb-9b7f-9ee5bd23a462" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/UnoServer/.env.example" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/INFO.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/INSTALL.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/RAG Pipeline.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/TODO.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/deployment/Dockerfile.client" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/deployment/Dockerfile.server" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/deployment/docker-compose-client.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/deployment/docker-compose-db.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/deployment/docker-compose.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/deployment/k8s/deployment.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/deployment/prometheus.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/src/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/src/analytics.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/src/client.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/src/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/src/game.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/src/logger.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/src/server.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/UnoServer/src/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/client.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/INFO.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/INSTALL.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/RAG Pipeline.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/TODO.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/deployment/Dockerfile.client" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/deployment/Dockerfile.server" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/deployment/docker-compose-client.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/deployment/docker-compose-db.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/deployment/docker-compose.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/deployment/k8s/deployment.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/deployment/prometheus.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/game.log" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/analytics.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/client.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/game.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/logger.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/server.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,45 +94,50 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Makefile Target.run-client.executor&quot;: &quot;Run&quot;,
-    &quot;Makefile Target.run-docker-server.executor&quot;: &quot;Run&quot;,
-    &quot;Makefile Target.run-server.executor&quot;: &quot;Run&quot;,
-    &quot;Makefile Target.run.executor&quot;: &quot;Run&quot;,
-    &quot;Makefile Target.stop-docker.executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python.client_1.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.client_2.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.logger.executor&quot;: &quot;Run&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.server.executor&quot;: &quot;Debug&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;develop&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/augustelli/PycharmProjects/Uno-Web-Server/deployment&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;terminal&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Makefile Target.run-client.executor": "Run",
+    "Makefile Target.run-docker-server.executor": "Run",
+    "Makefile Target.run-server.executor": "Run",
+    "Makefile Target.run.executor": "Run",
+    "Makefile Target.stop-docker.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.client_1.executor": "Debug",
+    "Python.client_2.executor": "Debug",
+    "Python.logger.executor": "Run",
+    "Python.main.executor": "Run",
+    "Python.server.executor": "Debug",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "develop",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/home/augustelli/PycharmProjects/Uno-Web-Server/GamesServer/backend/src",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "terminal",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
-      &quot;HTTP Request&quot;
+  "keyToStringList": {
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "JSON",
+      "HTTP Request"
     ]
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/GamesServer/backend/src" />
+      <recent name="$PROJECT_DIR$/GamesServer" />
       <recent name="$PROJECT_DIR$/deployment" />
       <recent name="$PROJECT_DIR$" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/GamesServer/backend" />
+      <recent name="$PROJECT_DIR$/UnoServer" />
       <recent name="$PROJECT_DIR$/deployment" />
       <recent name="$PROJECT_DIR$/src" />
     </key>
@@ -286,72 +337,37 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/game.py</url>
-          <line>119</line>
+          <url>file://$PROJECT_DIR$/UnoServer/src/game.py</url>
+          <line>132</line>
           <option name="timeStamp" value="25" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/server.py</url>
-          <line>335</line>
+          <url>file://$PROJECT_DIR$/UnoServer/src/server.py</url>
+          <line>345</line>
           <option name="timeStamp" value="27" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/client.py</url>
+          <url>file://$PROJECT_DIR$/UnoServer/src/client.py</url>
           <line>182</line>
           <option name="timeStamp" value="29" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/client.py</url>
+          <url>file://$PROJECT_DIR$/UnoServer/src/client.py</url>
           <line>258</line>
           <option name="timeStamp" value="30" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/server.py</url>
-          <line>24</line>
-          <option name="timeStamp" value="34" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/server.py</url>
-          <line>281</line>
-          <option name="timeStamp" value="35" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/server.py</url>
-          <line>284</line>
-          <option name="timeStamp" value="36" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/server.py</url>
-          <line>286</line>
-          <option name="timeStamp" value="37" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/server.py</url>
-          <line>12</line>
-          <option name="timeStamp" value="38" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/server.py</url>
-          <line>17</line>
-          <option name="timeStamp" value="39" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/server.py</url>
-          <line>22</line>
-          <option name="timeStamp" value="40" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/server.py</url>
-          <line>189</line>
+          <url>file://$PROJECT_DIR$/UnoServer/src/server.py</url>
+          <line>199</line>
           <option name="timeStamp" value="41" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/config.py</url>
+          <url>file://$PROJECT_DIR$/UnoServer/src/config.py</url>
           <line>18</line>
           <option name="timeStamp" value="42" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/config.py</url>
+          <url>file://$PROJECT_DIR$/UnoServer/src/config.py</url>
           <line>10</line>
           <option name="timeStamp" value="43" />
         </line-breakpoint>

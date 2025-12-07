@@ -1,0 +1,1 @@
+install fastapi uvicorn psycopg[binary] httpx
