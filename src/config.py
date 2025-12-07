@@ -37,6 +37,41 @@ CREATE TABLE IF NOT EXISTS logs (
   extra jsonb
 );
 CREATE INDEX IF NOT EXISTS idx_logs_created_at ON logs (created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_logs_created_at
+    ON logs (created_at DESC);
+
+CREATE TABLE IF NOT EXISTS games (
+    id           bigserial PRIMARY KEY,
+    game_id      text UNIQUE NOT NULL,       -- mismo id que usa GameManager
+    started_at   timestamptz NOT NULL DEFAULT now(),
+    ended_at     timestamptz,
+    max_players  integer    NOT NULL,
+    winner_player integer,
+    total_turns  integer    NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS game_events (
+    id         bigserial PRIMARY KEY,
+    game_id    text NOT NULL REFERENCES games(game_id) ON DELETE CASCADE,
+    ts         timestamptz NOT NULL DEFAULT now(),
+    player_id  integer,
+    player_name text,
+    event_type text NOT NULL,   -- 'start', 'play', 'draw', 'pass', 'timeout', 'end'
+    card       text,
+    extra      jsonb
+);
+
+CREATE INDEX IF NOT EXISTS idx_game_events_game_ts
+    ON game_events (game_id, ts);
+
+CREATE TABLE IF NOT EXISTS player_stats (
+    player_name        text PRIMARY KEY,
+    games_played       integer NOT NULL DEFAULT 0,
+    games_won          integer NOT NULL DEFAULT 0,
+    total_turns        integer NOT NULL DEFAULT 0,
+    total_cards_played integer NOT NULL DEFAULT 0
+);
 """
 
 

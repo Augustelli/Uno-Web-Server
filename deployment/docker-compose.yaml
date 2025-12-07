@@ -57,8 +57,23 @@ services:
     depends_on:
       - db
 
+  grafana:
+    image: grafana/grafana:main
+    container_name: grafana
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - 3000:3000
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    restart: unless-stopped
+    networks:
+      - default
+
 volumes:
     postgres-data:
+    grafana-data:
 
 networks:
   default:

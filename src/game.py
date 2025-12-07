@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import random
 import queue
 import threading
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional, Any
 from utils import serialize_message
 
 load_dotenv()
@@ -80,8 +80,9 @@ class Deck:
         self._build_deck()
 
 class Game:
-    def __init__(self, max_players: int, turn_timeout: int = 90):
-
+    def __init__(self, max_players: int, turn_timeout: int = 90,
+                 game_id: Optional[str] = None,
+                 analytics_queue: Optional[Any] = None):
         self.max_players = max_players
         self.turn_timeout = turn_timeout
         self.player_conns: Dict[int, 'socket.socket'] = {}
@@ -94,6 +95,8 @@ class Game:
         self.winner: int = 0
         self._stop_event = threading.Event()
         self.lock = threading.Lock()
+        self.game_id = game_id
+        self.analytics_queue = analytics_queue
 
     def add_player(self, name : str, player_id: int, conn) -> None:
         self.player_conns[player_id] = conn
@@ -115,6 +118,16 @@ class Game:
     def start_game(self) -> None:
         # Prepare deck and hands
         self.deck.shuffle()
+        if self.analytics_queue and self.game_id:
+            try:
+                self.analytics_queue.put({
+                    "type": "game_start",
+                    "game_id": self.game_id,
+                    "max_players": self.max_players,
+                    "players": dict(self.player_names),
+                })
+            except Exception:
+                pass
         print("Mazo barajado.")
         for pid in self.player_conns:
             self.hands[pid] = self.deck.draw(CARDS_NUMBER)
@@ -146,7 +159,7 @@ class Game:
         # Notify current player
         self._broadcast_event({"event": "turn", "player": current_player_id})
 
-        while True:  # Allow multiple actions per turn
+        while True:
             try:
                 player_id, msg = self.action_queue.get(timeout=self.turn_timeout)
                 self.action_queue.task_done()
@@ -181,12 +194,33 @@ class Game:
                                     "hand": [str(c) for c in self.hands[current_player_id]]
                                 }
                             })
+                            if self.analytics_queue and self.game_id:
+                                try:
+                                    self.analytics_queue.put({
+                                        "type": "draw",
+                                        "game_id": self.game_id,
+                                        "player_id": current_player_id,
+                                        "player_name": self.player_names.get(current_player_id),
+                                        "card": str(drawn_cards[0]),
+                                    })
+                                except Exception:
+                                    pass
                             self._send(current_conn, card_msg)
                     else:
                         self._send(current_conn, self._serialize({"type": "ERROR", "payload": "Ya levantaste una carta este turno."}))
                 elif msg["action"] == "PASAR":
                     if has_drawn:
                         print(f"Jugador {current_player_id} pasa el turno")
+                        if self.analytics_queue and self.game_id:
+                            try:
+                                self.analytics_queue.put({
+                                    "type": "pass",
+                                    "game_id": self.game_id,
+                                    "player_id": current_player_id,
+                                    "player_name": self.player_names.get(current_player_id),
+                                })
+                            except Exception:
+                                pass
                         break
                     else:
                         self._send(current_conn, self._serialize({"type": "ERROR", "payload": "Debes levantar una carta antes de pasar."}))
@@ -204,6 +238,16 @@ class Game:
                     self._send(current_conn, self._serialize({"type": "ERROR", "payload": "Acción desconocida."}))
             except queue.Empty:
                 self._broadcast_event({"event": "timeout", "player": current_player_id})
+                if self.analytics_queue and self.game_id:
+                    try:
+                        self.analytics_queue.put({
+                            "type": "timeout",
+                            "game_id": self.game_id,
+                            "player_id": current_player_id,
+                            "player_name": self.player_names.get(current_player_id),
+                        })
+                    except Exception:
+                        pass
                 break
 
         self.current_turn = self._next_player_id()
@@ -229,8 +273,23 @@ class Game:
         for pid, hand in self.hands.items():
             if not hand:
                 self.winner = pid
+
+                # Evento de fin de partida
+                if self.analytics_queue and self.game_id:
+                    try:
+                        self.analytics_queue.put({
+                            "type": "game_end",
+                            "game_id": self.game_id,
+                            "winner_id": pid,
+                            "winner_name": self.player_names.get(pid),
+                            "players": dict(self.player_names),
+                        })
+                    except Exception:
+                        pass
+
                 return True
         return False
+
 
     def _play_card(self, pid: int, card: Card) -> bool:
         # Validate
@@ -239,6 +298,17 @@ class Game:
             # Valid play
             self.hands[pid].remove(card)
             self.discard_pile.append(card)
+            if self.analytics_queue and self.game_id:
+                try:
+                    self.analytics_queue.put({
+                        "type": "play",
+                        "game_id": self.game_id,
+                        "player_id": pid,
+                        "player_name": self.player_names.get(pid),
+                        "card": str(card),
+                    })
+                except Exception:
+                    pass
             event = {"event": "play", "player": pid, "card": str(card)}
             self._broadcast_event(event)
             self._broadcast_full_update()

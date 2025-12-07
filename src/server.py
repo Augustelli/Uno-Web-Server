@@ -2,27 +2,37 @@ import socket
 import threading
 import sys
 import uuid
+from multiprocessing import Queue, Process
 from typing import Any, Dict, Tuple, Optional
 import json
 from game import Game
 from logger import start_db_logging_process, configure_queue_logging_producer, get_bound_logger
 import select
 from config import HOST, PORT, MAX_PLAYERS, TURN_TIMEOUT, LOG_DB_DSN, DB_TABLE_CREATION_QUERY, MIN_PLAYERS
+from src.analytics import analytics_worker
 
 
 class GameManager:
-    def __init__(self, max_players: int = MAX_PLAYERS, turn_timeout: int = TURN_TIMEOUT):
+    def __init__(self, max_players: int = MAX_PLAYERS, turn_timeout: int = TURN_TIMEOUT,
+                 analytics_queue: Optional[Queue] = None):
         self.games: Dict[str, Game] = {}           # activos
         self.waiting_games: Dict[str, Game] = {}   # esperando jugadores
         self.max_players = max_players
         self.turn_timeout = turn_timeout
         self.lock = threading.Lock()
+        self.analytics_queue = analytics_queue  # cola para eventos de analytics
+
 
     def create_game(self, max_players: Optional[int] = None) -> Tuple[str, Game]:
         with self.lock:
             game_id = str(uuid.uuid4())[:8]
             use_max = max_players if max_players is not None else self.max_players
-            game = Game(max_players=use_max, turn_timeout=self.turn_timeout)
+            game = Game(
+                max_players=use_max,
+                turn_timeout=self.turn_timeout,
+                game_id=game_id,
+                analytics_queue=self.analytics_queue,
+            )
             self.waiting_games[game_id] = game
             print(f"Juego creado: {game_id} (max_players={use_max})")
             return game_id, game
@@ -368,8 +378,11 @@ def start_server(port: int = PORT, max_players: int = MAX_PLAYERS, turn_timeout:
     if dsn:
         try:
             queue = start_db_logging_process(dsn, also_console=True)  # TODO Rever
-            configure_queue_logging_producer(queue)    # TODO Parametrizar cantidad de jugadores x partida.
-            log.logger.info("DB logging process started")
+            configure_queue_logging_producer(queue)
+            log.logger.info("Proceso de logging a DB iniciado")
+            configure_queue_logging_producer(queue)
+            log.logger.info("Analizador iniciado")
+
         except Exception as e:
             # fallback to console logging
             import logging
@@ -379,6 +392,23 @@ def start_server(port: int = PORT, max_players: int = MAX_PLAYERS, turn_timeout:
         import  logging
         logging.basicConfig(level=logging.INFO)
         log.logger.info("No LOG_DB_DSN provided, using console logging")
+
+    analytics_queue: Optional[Queue] = None
+    analytics_proc: Optional[Process] = None
+    if dsn:
+        try:
+            analytics_queue = Queue()
+            analytics_proc = Process(
+                target=analytics_worker,
+                args=(analytics_queue, dsn),
+                daemon=True,
+            )
+            analytics_proc.start()
+            log.logger.info("Analytics process started")
+        except Exception as e:
+            log.logger.warning("Failed to start analytics process: %s", e)
+            analytics_queue = None
+            analytics_proc = None
 
     addrinfos = socket.getaddrinfo(
         HOST, port, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM, flags=socket.AI_PASSIVE
@@ -400,7 +430,7 @@ def start_server(port: int = PORT, max_players: int = MAX_PLAYERS, turn_timeout:
             log.info(f"No se pudo unir {sa}: {e}", file=sys.stderr)
 
     log.info("Servidor listo para aceptar conexiones. Iniciando GameManager...")
-    game_manager = GameManager(max_players, turn_timeout)
+    game_manager = GameManager(max_players, turn_timeout, analytics_queue=analytics_queue)
 
     try:
         while True:
@@ -419,6 +449,8 @@ def start_server(port: int = PORT, max_players: int = MAX_PLAYERS, turn_timeout:
             except Exception:
                 pass
         log.info("Server parado.")
+        if analytics_queue is not None:
+            analytics_queue.put({"type": "__STOP__"})
 
 
 
