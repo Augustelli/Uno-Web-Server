@@ -57,8 +57,8 @@ class Deck:
         self.cards.clear()
         for color in Card.VALID_COLORS:
             for value in sorted(Card.VALID_VALUES, key=int):
-                # Una copia de cada carta
-                self.cards.append(Card(color, value))
+                # 10 copias de cada carta
+                self.cards.extend([Card(color, value) for _ in range(10)])
 
     def shuffle(self) -> None:
         random.shuffle(self.cards)
@@ -270,6 +270,8 @@ class Game:
         self._stop_event.wait()
 
     def _check_winner(self) -> bool:
+        if self.winner:
+            return True
         for pid, hand in self.hands.items():
             if not hand:
                 self.winner = pid
@@ -344,11 +346,52 @@ class Game:
         return serialize_message({"type": "UPDATE", "payload": payload})
 
     def remove_player(self, player_id: int) -> None:
-        """Remove a player from the game"""
-        if player_id in self.player_conns:
-            del self.player_conns[player_id]
-        if player_id in self.hands:
-            del self.hands[player_id]
+        """
+        Quita un jugador de la partida.
+        Si después de quitarlo queda solo un jugador, ese jugador gana automáticamente.
+        """
+        print(f"Removing player {player_id} from game")
+
+        with self.lock:
+            # eliminamos conexiones y mano
+            if player_id in self.player_conns:
+                del self.player_conns[player_id]
+            if player_id in self.hands:
+                del self.hands[player_id]
+            # si tenés nombres:
+            # if hasattr(self, "player_names") and player_id in self.player_names:
+            #     del self.player_names[player_id]
+
+            remaining_players = list(self.player_conns.keys())
+
+            # Si no queda nadie, no hay nada más que hacer
+            if not remaining_players:
+                print("No quedan jugadores en la partida.")
+                return
+
+            # Si queda SOLO UNO, lo declaramos ganador por abandono de los demás
+            if len(remaining_players) == 1 and self.winner == 0:
+                self.winner = remaining_players[0]
+                print(f"Ganador por abandono: jugador {self.winner}")
+
+        # *** Fuera del lock: mandamos el END al ganador que quedó ***
+        # (usamos una copia de las estructuras para evitar problemas de concurrencia)
+        remaining_conns = {}
+        with self.lock:
+            for pid, conn in self.player_conns.items():
+                remaining_conns[pid] = conn
+
+        if self.winner and remaining_conns:
+            end_msg = serialize_message({
+                "type": "END",
+                "payload": {"winner": self.winner}
+            })
+            for pid, conn in remaining_conns.items():
+                self._send(conn, end_msg)
+
+            # Señalizamos que el juego terminó; el bucle de start_game saldrá en la
+            # siguiente iteración, porque _check_winner() ahora devuelve True.
+            self._stop_event.set()
 
     @staticmethod
     def _serialize(msg: Dict) -> str:

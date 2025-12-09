@@ -69,21 +69,24 @@ class UnoClient:
 
     def disconnect(self):
         try:
+            self.connected = False
             if self.sock_file:
                 try:
+                    print("Cerrando socket file")
                     self.sock_file.close()
                 except Exception:
                     pass
                 self.sock_file = None
             if self.socket:
                 try:
+                    print("Cerrando socket")
                     self.socket.close()
                 except Exception:
                     pass
                 self.socket = None
         finally:
-            self.connected = False
             print("Desconectado del servidor")
+
 
     def show_main_menu(self):
         print("\n=== MENU PRINCIPAL UNO ===")
@@ -344,6 +347,7 @@ class UnoClient:
             print(f"  {i}. {card}")
 
     def play_game(self):
+        # HILO DE ESCUCHA: que sea DAEMON
         listen_thread = threading.Thread(target=self.listen_for_messages, daemon=True)
         listen_thread.start()
 
@@ -358,14 +362,27 @@ class UnoClient:
         while self.connected:
             try:
                 command = input().strip().lower()
+
                 if command == 'salir':
+                    print("Saliendo del juego...")
+                    # opcional: avisar al servidor
+                    try:
+                        self.send_message({"action": "SALIR"})
+                    except Exception as e:
+                        print(f"No se pudo enviar SALIR al servidor: {e}")
+                    # MARCAMOS desconectado -> el hilo de escucha va a terminar
+                    self.connected = False
                     break
+
                 elif command == 'mano':
                     self.show_game_state()
+
                 elif command == 'levantar':
                     self.send_message({"action": "LEVANTAR"})
+
                 elif command == 'pasar':
                     self.send_message({"action": "PASAR"})
+
                 elif command.startswith('juego '):
                     try:
                         card_num = int(command.split()[1]) - 1
@@ -385,10 +402,14 @@ class UnoClient:
                     print("Comando no reconocido")
 
             except KeyboardInterrupt:
+                print("Saliendo por teclado (Ctrl+C)")
+                self.connected = False
                 break
             except Exception as e:
                 print(f"Error enviando comando: {e}")
+                self.connected = False
                 break
+
 
     def run(self):
         if not self.connect():

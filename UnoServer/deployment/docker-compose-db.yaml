@@ -77,7 +77,7 @@ services:
     environment:
       - VLLM_HOST=0.0.0.0
       - VLLM_PORT=8000
-      - HUGGING_FACE_HUB_TOKEN=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
+      - HUGGING_FACE_HUB_TOKEN=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
     command: [
       "--model", "Qwen/Qwen2.5-1.5B-Instruct",
       "--host", "0.0.0.0",
@@ -101,6 +101,8 @@ services:
             - driver: nvidia
               count: all
               capabilities: [ gpu ]
+
+  # TODO HACER ESTE FLUJO EN VEZ DE N8N DEIRECTAMENTE EN EL PROCESO.
   n8n:
     image: docker.n8n.io/n8nio/n8n
     container_name: n8n
@@ -119,7 +121,7 @@ services:
       DB_POSTGRESDB_PASSWORD: Sup3rSecret0
 
 
-
+#
 
 volumes:
     postgres-data:

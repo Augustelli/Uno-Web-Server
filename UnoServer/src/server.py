@@ -9,7 +9,7 @@ from game import Game
 from logger import start_db_logging_process, configure_queue_logging_producer, get_bound_logger
 import select
 from config import HOST, PORT, MAX_PLAYERS, TURN_TIMEOUT, LOG_DB_DSN, DB_TABLE_CREATION_QUERY, MIN_PLAYERS
-from UnoServer.src.analytics import analytics_worker
+from analytics import analytics_worker
 
 
 class GameManager:

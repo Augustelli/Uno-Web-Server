@@ -73,5 +73,6 @@ CREATE TABLE IF NOT EXISTS player_stats (
     total_cards_played integer NOT NULL DEFAULT 0
 );
 """
-
+VLLM_MODEL_NAME = _str("VLLM_MODEL_NAME", "meta-llama/Llama-2-7b-chat-hf")
+VLLM_CHAT_URL = _str("VLLM_CHAT_URL", "https://huggingface.co/meta-llama/Llama-2-7b-chat-hf/resolve/main/")
 
