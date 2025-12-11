@@ -1,17 +1,17 @@
 import asyncio
 from datetime import datetime
 from typing import List, Optional
-
 import os
 import psycopg
 import httpx
 from fastapi import FastAPI, HTTPException, Query
+from httpx import Request
 from pydantic import BaseModel
 
 from config import LOG_DB_DSN, N8N_ANALYSIS_URL, SERVER_PORT
 
 
-# -------------------- Modelos Pydantic -------------------- #
+# -------------------- Modelos -------------------- #
 
 class GameSummary(BaseModel):
     game_id: str
@@ -23,7 +23,7 @@ class GameSummary(BaseModel):
 
 
 class GameDetail(GameSummary):
-    # si quisieras agregar más cosas específicas, acá
+    # Encapsula GameSummary para futuros campos extra si es necesario
     pass
 
 
@@ -65,64 +65,37 @@ app = FastAPI(
 
 # -------------------- Endpoints -------------------- #
 
-@app.get("/games", response_model=List[GameSummary])
-def list_games(
-    limit: int = Query(20, ge=1, le=100),
-    offset: int = Query(0, ge=0),
-):
-    """
-    Lista de partidas registradas en la base (paginada).
-    """
-    try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    SELECT game_id, started_at, ended_at, max_players, winner_player, total_turns
-                    FROM games
-                    ORDER BY started_at DESC
-                    LIMIT %s OFFSET %s;
-                    """,
-                    (limit, offset),
-                )
-                rows = cur.fetchall()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error consultando la base de datos: {e}")
-
-    games = [
-        GameSummary(
-            game_id=r[0],
-            started_at=r[1],
-            ended_at=r[2],
-            max_players=r[3],
-            winner_player=r[4],
-            total_turns=r[5],
-        )
-        for r in rows
-    ]
-    return games
+async def get_async_connection() -> "psycopg.AsyncConnection":
+    dsn = LOG_DB_DSN or os.getenv("LOG_DB_DSN")
+    if not dsn:
+        raise RuntimeError("LOG_DB_DSN no está configurado")
+    return await psycopg.AsyncConnection.connect(dsn)
 
 
 @app.get("/games/{game_id}", response_model=GameDetail)
-def get_game(game_id: str):
+async def get_game(game_id: str):
     """
-    Detalle básico de una partida.
+    Async detail lookup for a game.
     """
+    conn = None
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    SELECT game_id, started_at, ended_at, max_players, winner_player, total_turns
-                    FROM games
-                    WHERE game_id = %s
-                    LIMIT 1;
-                    """,
-                    (game_id,),
-                )
-                row = cur.fetchone()
+        conn = await get_async_connection()
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                SELECT game_id, started_at, ended_at, max_players, winner_player, total_turns
+                FROM games
+                WHERE game_id = %s
+                LIMIT 1;
+                """,
+                (game_id,),
+            )
+            row = await cur.fetchone()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error consultando la base de datos: {e}")
+    finally:
+        if conn:
+            await conn.close()
 
     if not row:
         raise HTTPException(status_code=404, detail="Partida no encontrada")
@@ -138,29 +111,31 @@ def get_game(game_id: str):
 
 
 @app.get("/games/{game_id}/events", response_model=List[GameEvent])
-def get_game_events(game_id: str):
+async def get_game_events(game_id: str):
     """
-    Lista de eventos de una partida (en orden cronológico).
+    Async events list for a game (chronological).
     """
+    conn = None
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    SELECT ts, player_id, player_name, event_type, card, extra
-                    FROM game_events
-                    WHERE game_id = %s
-                    ORDER BY ts ASC;
-                    """,
-                    (game_id,),
-                )
-                rows = cur.fetchall()
+        conn = await get_async_connection()
+        async with conn.cursor() as cur:
+            await cur.execute(
+                """
+                SELECT ts, player_id, player_name, event_type, card, extra
+                FROM game_events
+                WHERE game_id = %s
+                ORDER BY ts ASC;
+                """,
+                (game_id,),
+            )
+            rows = await cur.fetchall()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error consultando la base de datos: {e}")
+    finally:
+        if conn:
+            await conn.close()
 
     if not rows:
-        # No hay eventos -> o partida inexistente, o sin log
-        # Podés distinguirlo con otra query si querés; lo dejo simple
         raise HTTPException(status_code=404, detail="No se encontraron eventos para esa partida")
 
     events = [

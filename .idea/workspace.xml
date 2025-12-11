@@ -5,56 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="22d42244-dec7-42bb-9b7f-9ee5bd23a462" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/UnoServer/.env.example" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/INFO.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/INSTALL.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/Makefile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/RAG Pipeline.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/TODO.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/deployment/Dockerfile.client" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/deployment/Dockerfile.server" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/deployment/docker-compose-client.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/deployment/docker-compose-db.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/deployment/docker-compose.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/deployment/k8s/deployment.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/deployment/prometheus.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/requirements.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/src/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/src/analytics.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/src/client.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/src/config.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/src/game.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/src/logger.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/src/server.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UnoServer/src/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/data_source_mapping.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/sqldialects.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/INFO.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/INSTALL.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/RAG Pipeline.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TODO.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/deployment/Dockerfile.client" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/deployment/Dockerfile.server" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/deployment/docker-compose-client.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/deployment/docker-compose-db.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/deployment/docker-compose.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/deployment/k8s/deployment.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/deployment/prometheus.yml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/game.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/analytics.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/client.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/config.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/game.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/logger.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/server.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utils.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GamesServer/backend/src/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/GamesServer/backend/src/server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UnoServer/deployment/docker-compose-db.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/UnoServer/deployment/docker-compose-db.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UnoServer/src/analytics.py" beforeDir="false" afterPath="$PROJECT_DIR$/UnoServer/src/analytics.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UnoServer/src/client.py" beforeDir="false" afterPath="$PROJECT_DIR$/UnoServer/src/client.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UnoServer/src/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/UnoServer/src/server.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -106,13 +65,16 @@
     "Python.client_2.executor": "Debug",
     "Python.logger.executor": "Run",
     "Python.main.executor": "Run",
+    "Python.scratch_1.executor": "Run",
     "Python.server.executor": "Debug",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "develop",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/augustelli/PycharmProjects/Uno-Web-Server/GamesServer/backend/src",
+    "last_opened_file_path": "/home/augustelli/PycharmProjects/Uno-Web-Server/UnoServer/src",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -122,7 +84,11 @@
     "vue.rearranger.settings.migration": "true"
   },
   "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql"
+    ],
     "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "Python",
       "JSON",
       "HTTP Request"
     ]
@@ -142,15 +108,9 @@
       <recent name="$PROJECT_DIR$/src" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.server">
+  <component name="RunManager" selected="Python.scratch_1">
     <configuration name="run-docker-server" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
       <makefile filename="$PROJECT_DIR$/Makefile" target="run-docker-server" workingDirectory="" arguments="">
-        <envs />
-      </makefile>
-      <method v="2" />
-    </configuration>
-    <configuration name="run-server" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
-      <makefile filename="$PROJECT_DIR$/Makefile" target="run-server" workingDirectory="" arguments="">
         <envs />
       </makefile>
       <method v="2" />
@@ -175,6 +135,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/client.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -198,6 +159,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/client.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -221,6 +183,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/client.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -244,7 +207,32 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/client.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="scratch_1" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="PythonProject" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$APPLICATION_CONFIG_DIR$/scratches" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
+      <option name="SCRIPT_NAME" value="$APPLICATION_CONFIG_DIR$/scratches/scratch_1.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -262,11 +250,12 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/UnoServer/src" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/server.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -279,15 +268,16 @@
     <list>
       <item itemvalue="Makefile Target.run-docker-server" />
       <item itemvalue="Makefile Target.stop-docker" />
-      <item itemvalue="Makefile Target.run-server" />
       <item itemvalue="Python.client_1 (2)" />
       <item itemvalue="Python.client_1 (3)" />
       <item itemvalue="Python.client_2" />
+      <item itemvalue="Python.scratch_1" />
       <item itemvalue="Python.client_1" />
       <item itemvalue="Python.server" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.scratch_1" />
         <item itemvalue="Python.server" />
         <item itemvalue="Makefile Target.stop-docker" />
         <item itemvalue="Makefile Target.run-docker-server" />
@@ -298,7 +288,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-a101402ee41c-968fe969f28a-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.28238.29" />
+        <option value="bundled-python-sdk-0978a7220b69-9867c7d4c0a4-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.28294.336" />
       </set>
     </attachedChunks>
   </component>
@@ -316,6 +306,7 @@
       <workItem from="1755799988542" duration="68000" />
       <workItem from="1755869122369" duration="25000" />
       <workItem from="1756825877469" duration="3446000" />
+      <workItem from="1765486957265" duration="3613000" />
     </task>
     <servers />
   </component>
@@ -337,23 +328,18 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/UnoServer/src/game.py</url>
-          <line>132</line>
-          <option name="timeStamp" value="25" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/UnoServer/src/server.py</url>
           <line>345</line>
           <option name="timeStamp" value="27" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/UnoServer/src/client.py</url>
-          <line>182</line>
+          <line>196</line>
           <option name="timeStamp" value="29" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/UnoServer/src/client.py</url>
-          <line>258</line>
+          <line>272</line>
           <option name="timeStamp" value="30" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -375,11 +361,12 @@
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Personal$client_1.coverage" NAME="client_1 Coverage Results" MODIFIED="1756828737046" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/PythonProject$logger.coverage" NAME="logger Coverage Results" MODIFIED="1754425620829" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PythonProject$client_2.coverage" NAME="client_2 Coverage Results" MODIFIED="1757372449246" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Personal$client_2.coverage" NAME="client_2 Coverage Results" MODIFIED="1756828752578" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Personal$client_1.coverage" NAME="client_1 Coverage Results" MODIFIED="1756828737046" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/PythonProject$main.coverage" NAME="main Coverage Results" MODIFIED="1754426246877" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Uno_Web_Server$scratch_1.coverage" NAME="scratch_1 Coverage Results" MODIFIED="1765489224735" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
+    <SUITE FILE_PATH="coverage/PythonProject$logger.coverage" NAME="logger Coverage Results" MODIFIED="1754425620829" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Personal$client_2.coverage" NAME="client_2 Coverage Results" MODIFIED="1756828752578" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Personal$server.coverage" NAME="server Coverage Results" MODIFIED="1756828729183" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="github-copilot-workspace">

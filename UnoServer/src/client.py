@@ -70,6 +70,14 @@ class UnoClient:
     def disconnect(self):
         try:
             self.connected = False
+            if self.socket:
+                try:
+                    print("Shutting down socket")
+                    self.socket.shutdown(socket.SHUT_RDWR)
+                except Exception:
+                    pass
+
+            # close the file wrapper (makefile)
             if self.sock_file:
                 try:
                     print("Cerrando socket file")
@@ -77,6 +85,8 @@ class UnoClient:
                 except Exception:
                     pass
                 self.sock_file = None
+
+            # finally close the underlying socket
             if self.socket:
                 try:
                     print("Cerrando socket")
@@ -84,6 +94,7 @@ class UnoClient:
                 except Exception:
                     pass
                 self.socket = None
+
         finally:
             print("Desconectado del servidor")
 

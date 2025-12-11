@@ -375,28 +375,13 @@ if LOG_DB_DSN :
 def start_server(port: int = PORT, max_players: int = MAX_PLAYERS, turn_timeout: int = TURN_TIMEOUT) -> None:
     log = get_bound_logger("server")
     dsn = LOG_DB_DSN
+    analytics_queue: Optional[Queue] = None
+    analytics_proc: Optional[Process] = None
     if dsn:
         try:
             queue = start_db_logging_process(dsn, also_console=True)  # TODO Rever
             configure_queue_logging_producer(queue)
             log.logger.info("Proceso de logging a DB iniciado")
-            configure_queue_logging_producer(queue)
-            log.logger.info("Analizador iniciado")
-
-        except Exception as e:
-            # fallback to console logging
-            import logging
-            logging.basicConfig(level=logging.INFO)
-            log.logger.warning("Failed to start DB logging process: %s", e)
-    else:
-        import  logging
-        logging.basicConfig(level=logging.INFO)
-        log.logger.info("No LOG_DB_DSN provided, using console logging")
-
-    analytics_queue: Optional[Queue] = None
-    analytics_proc: Optional[Process] = None
-    if dsn:
-        try:
             analytics_queue = Queue()
             analytics_proc = Process(
                 target=analytics_worker,
@@ -404,11 +389,18 @@ def start_server(port: int = PORT, max_players: int = MAX_PLAYERS, turn_timeout:
                 daemon=True,
             )
             analytics_proc.start()
-            log.logger.info("Analytics process started")
+            log.logger.info("Analizador iniciado")
         except Exception as e:
-            log.logger.warning("Failed to start analytics process: %s", e)
-            analytics_queue = None
-            analytics_proc = None
+            # fallback to console logging
+            import logging
+            logging.basicConfig(level=logging.INFO)
+            log.logger.warning("Failed to start DB logging process: %s", e)
+
+    else:
+        import  logging
+        logging.basicConfig(level=logging.INFO)
+        log.logger.info("No LOG_DB_DSN provided, using console logging")
+
 
     addrinfos = socket.getaddrinfo(
         HOST, port, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM, flags=socket.AI_PASSIVE
