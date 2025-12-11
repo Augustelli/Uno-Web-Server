@@ -346,3 +346,8 @@ async def list_games(
         )
 
     return summaries
+
+
+from fastapi.staticfiles import StaticFiles
+
+app.mount("/ui", StaticFiles(directory="../../frontend", html=True), name="ui")

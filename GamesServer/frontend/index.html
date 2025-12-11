@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>UNO – Explorador de partidas y análisis</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #0f172a;
+      color: #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #111827;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #1f2937;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    header span {
+      font-size: 0.85rem;
+      color: #9ca3af;
+    }
+
+    main {
+      flex: 1;
+      padding: 1.5rem;
+      display: grid;
+      grid-template-columns: 1.2fr 1.5fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: #111827;
+      border-radius: 0.75rem;
+      border: 1px solid #1f2937;
+      padding: 1rem 1.25rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .card h2 {
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .card h2 span {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      font-weight: normal;
+    }
+
+    label {
+      font-size: 0.85rem;
+      color: #9ca3af;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 0.4rem 0.5rem;
+      margin-top: 0.25rem;
+      margin-bottom: 0.75rem;
+      border-radius: 0.5rem;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 0.9rem;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 0.45rem 0.9rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: #22c55e;
+      color: #022c22;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    button.secondary {
+      background: #1f2937;
+      color: #e5e7eb;
+      border: 1px solid #374151;
+      font-weight: 500;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: flex-end;
+      margin-bottom: 0.75rem;
+    }
+
+    .toolbar-group {
+      display: flex;
+      flex-direction: column;
+      min-width: 120px;
+    }
+
+    .games-list {
+      border-radius: 0.5rem;
+      border: 1px solid #1f2937;
+      overflow: hidden;
+      max-height: 360px;
+      overflow-y: auto;
+      background: #020617;
+    }
+
+    .game-row {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #111827;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      font-size: 0.85rem;
+    }
+
+    .game-row:last-child {
+      border-bottom: none;
+    }
+
+    .game-row:hover {
+      background: #0b1120;
+    }
+
+    .game-row.selected {
+      background: #1d283a;
+      border-left: 3px solid #22c55e;
+      padding-left: 0.55rem;
+    }
+
+    .game-row span.meta {
+      color: #9ca3af;
+      font-size: 0.8rem;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 0.15rem 0.5rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      background: #111827;
+      border: 1px solid #1f2937;
+      color: #9ca3af;
+    }
+
+    .chip.finished {
+      background: rgba(34, 197, 94, 0.12);
+      border-color: rgba(34, 197, 94, 0.5);
+      color: #4ade80;
+    }
+
+    .chip.running {
+      background: rgba(250, 204, 21, 0.1);
+      border-color: rgba(250, 204, 21, 0.5);
+      color: #facc15;
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.4rem;
+    }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.35rem 1rem;
+      font-size: 0.85rem;
+    }
+
+    .details-label {
+      color: #9ca3af;
+    }
+
+    .details-value {
+      color: #e5e7eb;
+    }
+
+    .events {
+      margin-top: 0.5rem;
+      border-radius: 0.5rem;
+      border: 1px solid #1f2937;
+      background: #020617;
+      max-height: 220px;
+      overflow-y: auto;
+      font-size: 0.8rem;
+    }
+
+    .event-row {
+      padding: 0.4rem 0.6rem;
+      border-bottom: 1px solid #0f172a;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .event-row:last-child {
+      border-bottom: none;
+    }
+
+    .event-meta {
+      color: #9ca3af;
+    }
+
+    .event-main {
+      color: #e5e7eb;
+    }
+
+    .analysis-output {
+      margin-top: 0.75rem;
+      border-radius: 0.5rem;
+      border: 1px solid #1f2937;
+      background: #020617;
+      padding: 0.6rem 0.8rem;
+      white-space: pre-wrap;
+      font-size: 0.85rem;
+    }
+
+    .status-bar {
+      margin-top: 0.4rem;
+      font-size: 0.8rem;
+      color: #9ca3af;
+      min-height: 1em;
+    }
+
+    .status-bar.error {
+      color: #f97373;
+    }
+
+  </style>
+</head>
+<body>
+<header>
+  <h1>UNO – Analizador de partidas</h1>
+  <span>Backend: /games · /games/{id} · /games/{id}/analysis</span>
+</header>
+
+<main>
+  <!-- Columna izquierda: listado de partidas -->
+  <section class="card">
+    <h2>Partidas guardadas <span>(DB)</span></h2>
+
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <label for="limit-input">Límite de partidas</label>
+        <input id="limit-input" type="number" min="1" max="200" value="20">
+      </div>
+      <div class="toolbar-group">
+        <label for="finished-only">
+          <input id="finished-only" type="checkbox" style="margin-right: 0.3rem;">
+          Solo partidas terminadas
+        </label>
+      </div>
+      <div class="toolbar-group">
+        <button id="load-games-btn" type="button">
+          🔄 Cargar partidas
+        </button>
+      </div>
+    </div>
+
+    <div id="games-list" class="games-list">
+      <!-- filas de partidas -->
+    </div>
+    <div id="games-status" class="status-bar"></div>
+  </section>
+
+  <!-- Columna derecha: detalles y análisis -->
+  <section class="card">
+    <h2>Detalles y análisis</h2>
+
+    <div id="no-game-selected">
+      <p style="font-size: 0.9rem; color: #9ca3af;">
+        Selecciona una partida de la lista de la izquierda para ver sus detalles
+        y hacer un análisis con el modelo.
+      </p>
+    </div>
+
+    <div id="game-details-panel" style="display:none;">
+      <div class="section">
+        <div class="section-title">Partida</div>
+        <div class="details-grid">
+          <div>
+            <div class="details-label">ID</div>
+            <div class="details-value" id="detail-game-id"></div>
+          </div>
+          <div>
+            <div class="details-label">Estado</div>
+            <div class="details-value">
+              <span id="detail-game-status" class="chip"></span>
+            </div>
+          </div>
+          <div>
+            <div class="details-label">Inicio</div>
+            <div class="details-value" id="detail-started-at"></div>
+          </div>
+          <div>
+            <div class="details-label">Fin</div>
+            <div class="details-value" id="detail-ended-at"></div>
+          </div>
+          <div>
+            <div class="details-label">Jugadores máx.</div>
+            <div class="details-value" id="detail-max-players"></div>
+          </div>
+          <div>
+            <div class="details-label">Turnos totales</div>
+            <div class="details-value" id="detail-total-turns"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section" style="margin-top: 0.75rem;">
+        <div class="section-title">Eventos</div>
+        <div id="events-list" class="events"></div>
+      </div>
+
+      <div class="section" style="margin-top: 0.75rem;">
+        <div class="section-title">Nuevo análisis con LLM</div>
+        <label for="analysis-question">Pregunta para el modelo</label>
+        <textarea id="analysis-question" placeholder="Ej: Resume brevemente la partida y dime quién jugó de forma más agresiva."></textarea>
+        <button id="run-analysis-btn" type="button">
+          🤖 Analizar partida
+        </button>
+        <div id="analysis-status" class="status-bar"></div>
+        <div id="analysis-output" class="analysis-output" style="display:none;"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // Cambia esto si tu API está en otro host/puerto
+  const API_BASE = "";
+
+  const gamesListEl = document.getElementById("games-list");
+  const gamesStatusEl = document.getElementById("games-status");
+  const loadGamesBtn = document.getElementById("load-games-btn");
+  const limitInput = document.getElementById("limit-input");
+  const finishedOnlyCheckbox = document.getElementById("finished-only");
+
+  const noGameSelectedEl = document.getElementById("no-game-selected");
+  const gameDetailsPanelEl = document.getElementById("game-details-panel");
+
+  const detailGameIdEl = document.getElementById("detail-game-id");
+  const detailGameStatusEl = document.getElementById("detail-game-status");
+  const detailStartedAtEl = document.getElementById("detail-started-at");
+  const detailEndedAtEl = document.getElementById("detail-ended-at");
+  const detailMaxPlayersEl = document.getElementById("detail-max-players");
+  const detailTotalTurnsEl = document.getElementById("detail-total-turns");
+
+  const eventsListEl = document.getElementById("events-list");
+
+  const analysisQuestionEl = document.getElementById("analysis-question");
+  const runAnalysisBtn = document.getElementById("run-analysis-btn");
+  const analysisStatusEl = document.getElementById("analysis-status");
+  const analysisOutputEl = document.getElementById("analysis-output");
+
+  let currentGames = [];
+  let selectedGameId = null;
+
+  async function loadGames() {
+    gamesStatusEl.textContent = "Cargando partidas...";
+    gamesStatusEl.classList.remove("error");
+    gamesListEl.innerHTML = "";
+    selectedGameId = null;
+    showNoGameSelected();
+
+    const limit = parseInt(limitInput.value || "20", 10);
+    const onlyFinished = finishedOnlyCheckbox.checked;
+
+    const url = new URL(API_BASE + "/games", window.location.origin);
+    url.searchParams.set("limit", isNaN(limit) ? "20" : String(limit));
+    url.searchParams.set("only_finished", String(onlyFinished));
+
+    try {
+      const res = await fetch(url.toString());
+      if (!res.ok) {
+        throw new Error(`Error ${res.status}: ${await res.text()}`);
+      }
+      const data = await res.json();
+      currentGames = data;
+      renderGamesList();
+      gamesStatusEl.textContent = `${data.length} partida(s) cargada(s).`;
+    } catch (err) {
+      console.error(err);
+      gamesStatusEl.textContent = "Error cargando partidas: " + err.message;
+      gamesStatusEl.classList.add("error");
+    }
+  }
+
+  function renderGamesList() {
+    gamesListEl.innerHTML = "";
+    if (!currentGames || currentGames.length === 0) {
+      gamesListEl.innerHTML = '<div style="padding:0.5rem 0.75rem; font-size:0.85rem; color:#9ca3af;">No hay partidas registradas.</div>';
+      return;
+    }
+    currentGames.forEach(game => {
+      const row = document.createElement("div");
+      row.className = "game-row";
+      row.dataset.gameId = game.game_id;
+
+      if (game.game_id === selectedGameId) {
+        row.classList.add("selected");
+      }
+
+      const title = document.createElement("div");
+      title.textContent = game.game_id;
+      row.appendChild(title);
+
+      const meta = document.createElement("span");
+      meta.className = "meta";
+
+      const started = game.started_at ? new Date(game.started_at).toLocaleString() : "¿?";
+      const ended = game.ended_at ? "terminada" : "en curso";
+
+      meta.textContent = `${started} · ${ended} · turnos: ${game.total_turns}`;
+      row.appendChild(meta);
+
+      const chip = document.createElement("span");
+      chip.className = "chip " + (game.ended_at ? "finished" : "running");
+      chip.textContent = game.ended_at ? "Terminado" : "En curso";
+      row.appendChild(chip);
+
+      row.addEventListener("click", () => {
+        selectGame(game.game_id);
+      });
+
+      gamesListEl.appendChild(row);
+    });
+  }
+
+  function markSelectedRow() {
+    Array.from(gamesListEl.querySelectorAll(".game-row")).forEach(row => {
+      if (row.dataset.gameId === selectedGameId) {
+        row.classList.add("selected");
+      } else {
+        row.classList.remove("selected");
+      }
+    });
+  }
+
+  function showNoGameSelected() {
+    noGameSelectedEl.style.display = "block";
+    gameDetailsPanelEl.style.display = "none";
+  }
+
+  function showGameDetails() {
+    noGameSelectedEl.style.display = "none";
+    gameDetailsPanelEl.style.display = "block";
+  }
+
+  async function selectGame(gameId) {
+    if (!gameId) return;
+    selectedGameId = gameId;
+    markSelectedRow();
+    await loadGameDetails(gameId);
+  }
+
+  async function loadGameDetails(gameId) {
+    analysisStatusEl.textContent = "";
+    analysisStatusEl.classList.remove("error");
+    analysisOutputEl.style.display = "none";
+    analysisOutputEl.textContent = "";
+
+    try {
+      const res = await fetch(API_BASE + "/games/" + encodeURIComponent(gameId));
+      if (!res.ok) {
+        throw new Error(`Error ${res.status}: ${await res.text()}`);
+      }
+      const data = await res.json();
+      renderGameDetails(data);
+    } catch (err) {
+      console.error(err);
+      analysisStatusEl.textContent = "Error cargando detalles de la partida: " + err.message;
+      analysisStatusEl.classList.add("error");
+      showNoGameSelected();
+      return;
+    }
+  }
+
+  function renderGameDetails(game) {
+    showGameDetails();
+
+    detailGameIdEl.textContent = game.game_id || "";
+    detailStartedAtEl.textContent = game.started_at ? new Date(game.started_at).toLocaleString() : "-";
+    detailEndedAtEl.textContent = game.ended_at ? new Date(game.ended_at).toLocaleString() : "-";
+    detailMaxPlayersEl.textContent = game.max_players != null ? game.max_players : "-";
+    detailTotalTurnsEl.textContent = game.total_turns != null ? game.total_turns : 0;
+
+    const statusChip = detailGameStatusEl;
+    statusChip.textContent = game.ended_at ? "Terminado" : "En curso";
+    statusChip.className = "chip " + (game.ended_at ? "finished" : "running");
+
+    eventsListEl.innerHTML = "";
+    if (!game.events || game.events.length === 0) {
+      eventsListEl.innerHTML = '<div class="event-row"><span class="event-main">Sin eventos registrados.</span></div>';
+      return;
+    }
+
+    for (const ev of game.events) {
+      const row = document.createElement("div");
+      row.className = "event-row";
+
+      const meta = document.createElement("div");
+      meta.className = "event-meta";
+      meta.textContent = ev.ts ? new Date(ev.ts).toLocaleString() : "(sin fecha)";
+      row.appendChild(meta);
+
+      const main = document.createElement("div");
+      main.className = "event-main";
+
+      let parts = [`event=${ev.event_type}`];
+      if (ev.player_id != null) parts.push(`player_id=${ev.player_id}`);
+      if (ev.player_name) parts.push(`name=${ev.player_name}`);
+      if (ev.card) parts.push(`card=${ev.card}`);
+
+      main.textContent = parts.join(", ");
+      row.appendChild(main);
+
+      eventsListEl.appendChild(row);
+    }
+  }
+
+  async function runAnalysis() {
+    analysisStatusEl.textContent = "";
+    analysisStatusEl.classList.remove("error");
+    analysisOutputEl.style.display = "none";
+    analysisOutputEl.textContent = "";
+
+    if (!selectedGameId) {
+      analysisStatusEl.textContent = "Primero selecciona una partida.";
+      analysisStatusEl.classList.add("error");
+      return;
+    }
+
+    const question = analysisQuestionEl.value.trim();
+    if (!question) {
+      analysisStatusEl.textContent = "Escribe una pregunta para el modelo.";
+      analysisStatusEl.classList.add("error");
+      return;
+    }
+
+    runAnalysisBtn.disabled = true;
+    runAnalysisBtn.textContent = "Analizando...";
+    analysisStatusEl.textContent = "Llamando al modelo LLM...";
+    analysisStatusEl.classList.remove("error");
+
+    try {
+      const res = await fetch(API_BASE + "/games/" + encodeURIComponent(selectedGameId) + "/analysis", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({question}),
+      });
+      if (!res.ok) {
+        throw new Error(`Error ${res.status}: ${await res.text()}`);
+      }
+      const data = await res.json();
+      analysisOutputEl.textContent = data.analysis || "(sin texto devuelto)";
+      analysisOutputEl.style.display = "block";
+      analysisStatusEl.textContent = "Análisis completado.";
+    } catch (err) {
+      console.error(err);
+      analysisStatusEl.textContent = "Error realizando análisis: " + err.message;
+      analysisStatusEl.classList.add("error");
+    } finally {
+      runAnalysisBtn.disabled = false;
+      runAnalysisBtn.textContent = "🤖 Analizar partida";
+    }
+  }
+
+  loadGamesBtn.addEventListener("click", () => {
+    loadGames();
+  });
+
+  runAnalysisBtn.addEventListener("click", () => {
+    runAnalysis();
+  });
+
+  // Carga inicial
+  window.addEventListener("DOMContentLoaded", () => {
+    loadGames();
+  });
+</script>
+</body>
+</html>
