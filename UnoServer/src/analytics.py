@@ -369,6 +369,7 @@ def analytics_worker(queue: Queue, dsn: str) -> None:
                                 turns=1 if etype == "play" else 0,
                                 cards_played=cards_played,
                             )
+                            print("[analytics_worker] Stats de jugador actualizadas:", player_name)
 
                     elif etype == "game_end":
                         print("[analytics_worker] Partida finalizada:", game_id)

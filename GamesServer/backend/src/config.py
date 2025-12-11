@@ -16,6 +16,5 @@ def _int(name, default):
 def _str(name, default):
     return os.environ.get(name, default)
 
-LOG_DB_DSN = _str("LOG_DB_DSN", "dbname=game_db user=postgres password=Sup3rSecret0 host=localhost port=5432")
-N8N_ANALYSIS_URL = _str("N8N_ANALYSIS_URL", "http://localhost:5678/webhook-test/ia-completion")
+DB_DSN = _str("DB_DSN", "dbname=game_db user=postgres password=Sup3rSecret0 host=localhost port=5432")
 SERVER_PORT = _int("SERVER_PORT", 8899)

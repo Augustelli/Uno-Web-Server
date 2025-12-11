@@ -5,15 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="22d42244-dec7-42bb-9b7f-9ee5bd23a462" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/data_source_mapping.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/sqldialects.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GamesServer/backend/src/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/GamesServer/backend/src/server.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UnoServer/deployment/docker-compose-db.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/UnoServer/deployment/docker-compose-db.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GamesServer/backend/src/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/GamesServer/backend/src/config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/UnoServer/src/analytics.py" beforeDir="false" afterPath="$PROJECT_DIR$/UnoServer/src/analytics.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UnoServer/src/client.py" beforeDir="false" afterPath="$PROJECT_DIR$/UnoServer/src/client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UnoServer/src/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/UnoServer/src/server.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -306,7 +300,7 @@
       <workItem from="1755799988542" duration="68000" />
       <workItem from="1755869122369" duration="25000" />
       <workItem from="1756825877469" duration="3446000" />
-      <workItem from="1765486957265" duration="3613000" />
+      <workItem from="1765486957265" duration="6067000" />
     </task>
     <servers />
   </component>
