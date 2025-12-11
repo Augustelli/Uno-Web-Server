@@ -4,7 +4,7 @@ from typing import List, Optional
 
 import asyncpg
 import httpx
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import FastAPI, HTTPException, Body, Query
 from pydantic import BaseModel
 from config import DB_DSN
 
@@ -32,6 +32,15 @@ class GameEvent(BaseModel):
     event_type: str
     card: Optional[str]
     extra: Optional[dict]
+
+
+class GameSummary(BaseModel):
+    game_id: str
+    started_at: Optional[str]
+    ended_at: Optional[str]
+    max_players: int
+    winner_player: Optional[int]
+    total_turns: int
 
 
 class GameDetails(BaseModel):
@@ -298,3 +307,42 @@ async def analyze_game(game_id: str, body: AnalysisRequest = Body(...)):
         question=body.question,
         analysis=analysis_text,
     )
+@app.get("/games", response_model=List[GameSummary])
+async def list_games(
+    limit: int = Query(20, ge=1, le=200),
+    only_finished: bool = Query(False, description="Si es true, solo partidas finalizadas"),
+):
+    """
+    Lista partidas almacenadas en la base de datos.
+    - Por defecto devuelve las últimas `limit` partidas ordenadas por inicio descendente.
+    - Si `only_finished=true`, solo devuelve partidas con ended_at no nulo.
+    """
+    if db_pool is None:
+        raise RuntimeError("DB pool no inicializado")
+
+    where_clause = "WHERE ended_at IS NOT NULL" if only_finished else ""
+    query = f"""
+        SELECT game_id, started_at, ended_at, max_players, winner_player, total_turns
+        FROM games
+        {where_clause}
+        ORDER BY started_at DESC
+        LIMIT $1
+    """
+
+    async with db_pool.acquire() as conn:
+        rows = await conn.fetch(query, limit)
+
+    summaries: List[GameSummary] = []
+    for r in rows:
+        summaries.append(
+            GameSummary(
+                game_id=r["game_id"],
+                started_at=r["started_at"].isoformat() if r["started_at"] else None,
+                ended_at=r["ended_at"].isoformat() if r["ended_at"] else None,
+                max_players=r["max_players"],
+                winner_player=r["winner_player"],
+                total_turns=r["total_turns"] or 0,
+            )
+        )
+
+    return summaries
