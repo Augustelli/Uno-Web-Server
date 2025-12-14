@@ -1,0 +1,69 @@
+<ng-container *ngIf="game;">
+  <div class="bg-[#0d1811] border border-[#264532] rounded-2xl p-5 text-sm text-white flex flex-col gap-4">
+    <div class="flex justify-between items-center">
+      <div>
+        <div class="text-xs text-text-muted uppercase tracking-wide mb-1">Partida</div>
+        <div class="text-lg font-bold">{{ game?.game_id }}</div>
+      </div>
+      <span
+        class="text-[11px] px-3 py-1 rounded-full border"
+        [ngClass]="game?.ended_at
+        ? 'border-primary/60 text-primary bg-primary/10'
+        : 'border-yellow-400/60 text-yellow-200 bg-yellow-500/10'"
+      >
+      {{ game?.ended_at ? 'Terminado' : 'En curso' }}
+    </span>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <div class="text-[11px] text-text-muted uppercase">Inicio</div>
+        <div class="text-xs">{{ game?.started_at | date : 'short' }}</div>
+      </div>
+      <div>
+        <div class="text-[11px] text-text-muted uppercase">Fin</div>
+        <div class="text-xs">
+          {{ game?.ended_at ? (game?.ended_at | date : 'short') : '—' }}
+        </div>
+      </div>
+      <div>
+        <div class="text-[11px] text-text-muted uppercase">Jugadores máx.</div>
+        <div class="text-xs">{{ game?.max_players }}</div>
+      </div>
+      <div>
+        <div class="text-[11px] text-text-muted uppercase">Turnos totales</div>
+        <div class="text-xs">{{ game?.total_turns }}</div>
+      </div>
+      <div>
+        <div class="text-[11px] text-text-muted uppercase">Ganador (player_id)</div>
+        <div class="text-xs">{{ game?.winner_player ?? '—' }}</div>
+      </div>
+    </div>
+
+    <div class="mt-2">
+      <div class="text-[11px] text-text-muted uppercase mb-1">Eventos</div>
+      <div class="max-h-64 overflow-y-auto border border-[#264532] rounded-xl p-2 custom-scrollbar space-y-1">
+        <div
+          *ngIf="!game.events || game.events.length === 0"
+          class="text-[11px] text-text-muted"
+        >
+          Sin eventos registrados.
+        </div>
+
+        <div
+          *ngFor="let ev of game.events"
+          class="text-[11px] border-b border-[#264532]/60 pb-1 mb-1 last:border-b-0 last:pb-0 last:mb-0"
+        >
+          <div class="text-text-muted">
+            {{ ev.ts | date : 'short' }} · event={{ ev.event_type }}
+          </div>
+          <div class="text-xs">
+            <span *ngIf="ev.player_id != null">player_id={{ ev.player_id }} · </span>
+            <span *ngIf="ev.player_name">{{ ev.player_name }} · </span>
+            <span *ngIf="ev.card">card={{ ev.card }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>

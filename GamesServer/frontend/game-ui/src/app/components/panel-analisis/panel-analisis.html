@@ -1,0 +1,67 @@
+<div class="w-full bg-[#0d1811] border border-[#264532] rounded-2xl p-5 flex flex-col gap-3 text-sm">
+  <div class="flex items-center justify-between gap-2">
+    <div>
+      <div class="text-[11px] text-text-muted uppercase">Análisis de partida</div>
+      <div class="text-base font-semibold">Modelo de IA</div>
+    </div>
+    <span class="text-[11px] text-text-muted">
+      Partida:
+      <span class="font-mono text-xs text-primary">{{ game.game_id || '—' }}</span>
+    </span>
+  </div>
+      <div class="max-h-64 overflow-y-auto border border-[#264532] rounded-xl p-2 custom-scrollbar space-y-1">
+        <div
+          *ngIf="!game.analyses || game.analyses.length === 0"
+          class="text-[11px] text-text-muted"
+        >
+          Sin análisis por IA registrados.
+        </div>
+
+        <div
+          *ngFor="let an of game.analyses"
+          class="text-[11px] border-b border-[#264532]/60 pb-1 mb-1 last:border-b-0 last:pb-0 last:mb-0"
+        >
+          <div class="text-text-muted">
+            {{ an.created_at | date : 'short' }}
+          </div>
+          <div class="text-xs">
+            <span *ngIf="an.question"><strong>Q:</strong> {{ an.question }}</span><br />
+            <span *ngIf="an.answer"><strong>A:</strong> {{ an.answer }}</span><br />
+            <span *ngIf="an.model"><strong>Model:</strong> {{ an.model }}</span><br />
+          </div>
+        </div>
+      </div>
+  <div class="flex flex-col gap-2 mt-1">
+    <label class="text-[11px] text-text-muted uppercase">
+      Pregunta
+    </label>
+    <textarea
+      [(ngModel)]="question"
+      rows="4"
+      class="w-full rounded-xl border border-[#264532] bg-[#0b1710] px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+      placeholder="Ej: Resume la partida y dime quién jugó de forma más agresiva."
+    ></textarea>
+
+    <button
+      type="button"
+      (click)="runAnalysis()"
+      [disabled]="analyzing || !game.game_id"
+      class="inline-flex items-center justify-center mt-1 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-[#0c1610] hover:bg-primary-hover disabled:opacity-60"
+    >
+      <span class="material-symbols-outlined text-[16px] mr-1">
+        {{ analyzing ? 'hourglass_bottom' : 'neurology' }}
+      </span>
+      {{ analyzing ? 'Preguntando...' : 'Preguntar IA' }}
+    </button>
+
+    <div class="text-[11px] text-text-muted" *ngIf="status && !error">{{ status }}</div>
+    <div class="text-[11px] text-red-400" *ngIf="error">{{ error }}</div>
+
+    <div
+      *ngIf="output"
+      class="mt-2 rounded-xl border border-[#264532] bg-[#0b1710] px-3 py-2 text-xs whitespace-pre-wrap custom-scrollbar max-h-60 overflow-y-auto"
+    >
+      {{ output }}
+    </div>
+  </div>
+</div>

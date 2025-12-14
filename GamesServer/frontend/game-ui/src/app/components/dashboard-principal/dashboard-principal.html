@@ -1,0 +1,62 @@
+<!-- Top Navigation Bar -->
+<header
+  class="shrink-0 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-surface-highlight bg-background-dark px-6 py-4 z-20">
+  <div class="flex items-center gap-4">
+    <div class="flex items-center justify-center size-10 rounded-xl bg-primary/20 text-primary">
+      <span class="material-symbols-outlined text-2xl">playing_cards</span>
+    </div>
+    <div>
+      <h2 class="text-white text-lg font-bold leading-tight tracking-tight">
+        UNO – Analizador de partidas
+      </h2>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="material-symbols-outlined text-[12px] text-text-secondary">api</span>
+      </div>
+    </div>
+  </div>
+</header>
+<div class="flex flex-1 overflow-hidden h-[calc(100vh-72px)]">
+  <aside
+    class="w-full md:w-[380px] flex flex-col border-r border-surface-highlight bg-background-dark/50 shrink-0 h-full">
+    <app-listado-partida
+      [games]="games"
+      [loading]="gamesLoading"
+      [error]="gamesError"
+      [limit]="limit"
+      [onlyFinished]="onlyFinished"
+      [selectedGameId]="selectedGameId"
+      (limitChange)="limit = $event; loadGames()"
+      (onlyFinishedChange)="onlyFinished = $event; loadGames()"
+      (refreshRequested)="loadGames()"
+      (gameSelected)="onGameSelected($event)"
+    ></app-listado-partida>
+  </aside>
+  <main class="flex-1 flex flex-col h-full overflow-y-auto bg-background-dark relative">
+    <div
+      class="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none mix-blend-screen"></div>
+
+    <div class="max-w-5xl mx-auto w-full p-6 lg:p-10 space-y-8 z-10">
+            <ng-container *ngIf="detailsLoading">
+              <div class="text-text-muted">Cargando detalles...</div>
+            </ng-container>
+
+      <ng-container *ngIf="detailsError">
+        <div class="text-red-400 text-sm">{{ detailsError }}</div>
+      </ng-container>
+
+      <ng-container *ngIf="!detailsLoading && !selectedGame">
+        <div class="text-text-muted text-sm">
+          Selecciona una partida en el panel izquierdo para ver detalles y análisis.
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="selectedGame">
+        <h3 class="text-white text-2xl font-bold mb-4">Detalles y análisis de la partida</h3>
+        <div class="grid gap-6 lg:grid-cols-2">
+          <app-panel-detalle [game]="selectedGame!"></app-panel-detalle>
+          <app-panel-analisis [game]="selectedGame!"></app-panel-analisis>
+        </div>
+      </ng-container>
+    </div>
+  </main>
+</div>

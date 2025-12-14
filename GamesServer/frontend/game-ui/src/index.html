@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="utf-8" />
+  <title>UNO Analyzer</title>
+  <base href="/" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet" />
+
+  <!-- Material Symbols -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CDN (si no usas build de Tailwind) -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#38e07b",
+            "primary-dark": "#2ab861",
+            "primary-hover": "#2ec268",
+            "background-light": "#f6f8f7",
+            "background-dark": "#122017",
+            "surface-dark": "#1a2c23",
+            "surface-highlight": "#264532",
+            "border-dark": "#366348",
+            "text-secondary": "#96c5a9",
+            "text-muted": "#96c5a9",
+          },
+          fontFamily: {
+            display: ["Manrope", "sans-serif"],
+          },
+          borderRadius: {
+            DEFAULT: "1rem",
+            lg: "2rem",
+            xl: "3rem",
+            full: "9999px",
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white">
+  <app-root></app-root>
+</body>
+</html>

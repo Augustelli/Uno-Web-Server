@@ -11,9 +11,8 @@
 4||10|c|G
 4||10|C|G
 4||10|T|G</Grants>
-      <IntrospectionStateNumber>2135</IntrospectionStateNumber>
       <ServerVersion>18.1</ServerVersion>
-      <StartupTime>1765315420</StartupTime>
+      <StartupTime>1765743635</StartupTime>
       <TimeZones>true ACDT
 true ACSST
 false ACST
@@ -707,69 +706,68 @@ false posixrules
 13293||10|C|G
 13293||-9223372036854775808|U|G
 13293||10|U|G</Grants>
-      <IntrospectionStateNumber>2135</IntrospectionStateNumber>
       <ObjectId>16388</ObjectId>
       <OwnerName>postgres</OwnerName>
     </database>
-    <database id="3" parent="1" name="n8n">
-      <ObjectId>16462</ObjectId>
-      <OwnerName>postgres</OwnerName>
-    </database>
-    <database id="4" parent="1" name="postgres">
+    <database id="3" parent="1" name="postgres">
       <Comment>default administrative connection database</Comment>
       <ObjectId>5</ObjectId>
       <OwnerName>postgres</OwnerName>
     </database>
-    <role id="5" parent="1" name="pg_checkpoint">
-      <ObjectId>4544</ObjectId>
-    </role>
-    <role id="6" parent="1" name="pg_create_subscription">
-      <ObjectId>6304</ObjectId>
-    </role>
-    <role id="7" parent="1" name="pg_database_owner">
+    <database id="4" parent="1" name="n8n">
+      <ObjectId>16462</ObjectId>
+      <OwnerName>postgres</OwnerName>
+    </database>
+    <role id="5" parent="1" name="pg_database_owner">
       <ObjectId>6171</ObjectId>
     </role>
-    <role id="8" parent="1" name="pg_execute_server_program">
-      <ObjectId>4571</ObjectId>
+    <role id="6" parent="1" name="pg_read_all_data">
+      <ObjectId>6181</ObjectId>
     </role>
-    <role id="9" parent="1" name="pg_maintain">
-      <ObjectId>6337</ObjectId>
+    <role id="7" parent="1" name="pg_write_all_data">
+      <ObjectId>6182</ObjectId>
     </role>
-    <role id="10" parent="1" name="pg_monitor">
+    <role id="8" parent="1" name="pg_monitor">
       <ObjectId>3373</ObjectId>
       <RoleGrants>3374
 3375
 3377</RoleGrants>
     </role>
-    <role id="11" parent="1" name="pg_read_all_data">
-      <ObjectId>6181</ObjectId>
-    </role>
-    <role id="12" parent="1" name="pg_read_all_settings">
+    <role id="9" parent="1" name="pg_read_all_settings">
       <ObjectId>3374</ObjectId>
     </role>
-    <role id="13" parent="1" name="pg_read_all_stats">
+    <role id="10" parent="1" name="pg_read_all_stats">
       <ObjectId>3375</ObjectId>
     </role>
-    <role id="14" parent="1" name="pg_read_server_files">
+    <role id="11" parent="1" name="pg_stat_scan_tables">
+      <ObjectId>3377</ObjectId>
+    </role>
+    <role id="12" parent="1" name="pg_read_server_files">
       <ObjectId>4569</ObjectId>
     </role>
-    <role id="15" parent="1" name="pg_signal_autovacuum_worker">
-      <ObjectId>6392</ObjectId>
+    <role id="13" parent="1" name="pg_write_server_files">
+      <ObjectId>4570</ObjectId>
     </role>
-    <role id="16" parent="1" name="pg_signal_backend">
+    <role id="14" parent="1" name="pg_execute_server_program">
+      <ObjectId>4571</ObjectId>
+    </role>
+    <role id="15" parent="1" name="pg_signal_backend">
       <ObjectId>4200</ObjectId>
     </role>
-    <role id="17" parent="1" name="pg_stat_scan_tables">
-      <ObjectId>3377</ObjectId>
+    <role id="16" parent="1" name="pg_checkpoint">
+      <ObjectId>4544</ObjectId>
+    </role>
+    <role id="17" parent="1" name="pg_maintain">
+      <ObjectId>6337</ObjectId>
     </role>
     <role id="18" parent="1" name="pg_use_reserved_connections">
       <ObjectId>4550</ObjectId>
     </role>
-    <role id="19" parent="1" name="pg_write_all_data">
-      <ObjectId>6182</ObjectId>
+    <role id="19" parent="1" name="pg_create_subscription">
+      <ObjectId>6304</ObjectId>
     </role>
-    <role id="20" parent="1" name="pg_write_server_files">
-      <ObjectId>4570</ObjectId>
+    <role id="20" parent="1" name="pg_signal_autovacuum_worker">
+      <ObjectId>6392</ObjectId>
     </role>
     <role id="21" parent="1" name="postgres">
       <BypassRls>1</BypassRls>
@@ -4232,9 +4230,6 @@ false posixrules
       <AutoIntrospectionLevel>3</AutoIntrospectionLevel>
       <Comment>standard public schema</Comment>
       <Current>1</Current>
-      <LastIntrospectionL1Xid>2135</LastIntrospectionL1Xid>
-      <LastIntrospectionL2Xid>2135</LastIntrospectionL2Xid>
-      <LastIntrospectionL3Xid>2135</LastIntrospectionL3Xid>
       <LastIntrospectionLevel>3</LastIntrospectionLevel>
       <LastIntrospectionLocalTimestamp>2025-12-09.23:13:42</LastIntrospectionLocalTimestamp>
       <ObjectId>2200</ObjectId>
@@ -4271,7 +4266,7 @@ false posixrules
     <table id="277" parent="273" name="game_analysis">
       <DetailsLevel>2</DetailsLevel>
       <ObjectId>18724</ObjectId>
-      <StateNumber>1851</StateNumber>
+      <StateNumber>2497</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>postgres</OwnerName>
     </table>
@@ -4337,7 +4332,16 @@ false posixrules
       <StoredType>timestamp with time zone|0s</StoredType>
       <TypeId>1184</TypeId>
     </column>
-    <foreign-key id="287" parent="277" name="game_analysis_game_id_fkey">
+    <column id="287" parent="277" name="id">
+      <DefaultExpression>nextval(&apos;game_analysis_id_seq&apos;::regclass)</DefaultExpression>
+      <NotNull>1</NotNull>
+      <Position>6</Position>
+      <StateNumber>2497</StateNumber>
+      <StoredType>integer|0s</StoredType>
+      <SequenceId>18990</SequenceId>
+      <TypeId>23</TypeId>
+    </column>
+    <foreign-key id="288" parent="277" name="game_analysis_game_id_fkey">
       <ColNames>game_id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>18735</ObjectId>
@@ -4345,26 +4349,21 @@ false posixrules
       <RefKeyColPositions>2</RefKeyColPositions>
       <RefTableId>16409</RefTableId>
     </foreign-key>
-    <index id="288" parent="277" name="game_analysis_pkey">
-      <ColNames>game_id</ColNames>
-      <NameSurrogate>1</NameSurrogate>
-      <ObjectId>18733</ObjectId>
+    <index id="289" parent="277" name="game_analysis_pk">
+      <ColNames>id</ColNames>
+      <ObjectId>18993</ObjectId>
       <Primary>1</Primary>
-      <StateNumber>1851</StateNumber>
+      <StateNumber>2497</StateNumber>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
-      <CollationNames>default</CollationNames>
-      <CollationIds>100</CollationIds>
-      <CollationParentNames>pg_catalog</CollationParentNames>
     </index>
-    <key id="289" parent="277" name="game_analysis_pkey">
-      <NameSurrogate>1</NameSurrogate>
-      <ObjectId>18734</ObjectId>
+    <key id="290" parent="277" name="game_analysis_pk">
+      <ObjectId>18994</ObjectId>
       <Primary>1</Primary>
-      <StateNumber>1851</StateNumber>
-      <UnderlyingIndexId>18733</UnderlyingIndexId>
+      <StateNumber>2497</StateNumber>
+      <UnderlyingIndexId>18993</UnderlyingIndexId>
     </key>
-    <column id="290" parent="278" name="id">
+    <column id="291" parent="278" name="id">
       <DefaultExpression>nextval(&apos;game_events_id_seq&apos;::regclass)</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>1</Position>
@@ -4373,14 +4372,14 @@ false posixrules
       <SequenceId>16426</SequenceId>
       <TypeId>20</TypeId>
     </column>
-    <column id="291" parent="278" name="game_id">
+    <column id="292" parent="278" name="game_id">
       <NotNull>1</NotNull>
       <Position>2</Position>
       <StateNumber>1040</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="292" parent="278" name="ts">
+    <column id="293" parent="278" name="ts">
       <DefaultExpression>now()</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>3</Position>
@@ -4388,38 +4387,38 @@ false posixrules
       <StoredType>timestamp with time zone|0s</StoredType>
       <TypeId>1184</TypeId>
     </column>
-    <column id="293" parent="278" name="player_id">
+    <column id="294" parent="278" name="player_id">
       <Position>4</Position>
       <StateNumber>1040</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="294" parent="278" name="player_name">
+    <column id="295" parent="278" name="player_name">
       <Position>5</Position>
       <StateNumber>1040</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="295" parent="278" name="event_type">
+    <column id="296" parent="278" name="event_type">
       <NotNull>1</NotNull>
       <Position>6</Position>
       <StateNumber>1040</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="296" parent="278" name="card">
+    <column id="297" parent="278" name="card">
       <Position>7</Position>
       <StateNumber>1040</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="297" parent="278" name="extra">
+    <column id="298" parent="278" name="extra">
       <Position>8</Position>
       <StateNumber>1040</StateNumber>
       <StoredType>jsonb|0s</StoredType>
       <TypeId>3802</TypeId>
     </column>
-    <foreign-key id="298" parent="278" name="game_events_game_id_fkey">
+    <foreign-key id="299" parent="278" name="game_events_game_id_fkey">
       <ColNames>game_id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>16440</ObjectId>
@@ -4428,7 +4427,7 @@ false posixrules
       <RefKeyColPositions>2</RefKeyColPositions>
       <RefTableId>16409</RefTableId>
     </foreign-key>
-    <index id="299" parent="278" name="game_events_pkey">
+    <index id="300" parent="278" name="game_events_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>16438</ObjectId>
@@ -4437,7 +4436,7 @@ false posixrules
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <index id="300" parent="278" name="idx_game_events_game_ts">
+    <index id="301" parent="278" name="idx_game_events_game_ts">
       <ColNames>game_id
 ts</ColNames>
       <ObjectId>16445</ObjectId>
@@ -4447,14 +4446,14 @@ ts</ColNames>
       <CollationIds>100</CollationIds>
       <CollationParentNames>pg_catalog</CollationParentNames>
     </index>
-    <key id="301" parent="278" name="game_events_pkey">
+    <key id="302" parent="278" name="game_events_pkey">
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>16439</ObjectId>
       <Primary>1</Primary>
       <StateNumber>1040</StateNumber>
       <UnderlyingIndexId>16438</UnderlyingIndexId>
     </key>
-    <column id="302" parent="279" name="id">
+    <column id="303" parent="279" name="id">
       <DefaultExpression>nextval(&apos;games_id_seq&apos;::regclass)</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>1</Position>
@@ -4463,14 +4462,14 @@ ts</ColNames>
       <SequenceId>16408</SequenceId>
       <TypeId>20</TypeId>
     </column>
-    <column id="303" parent="279" name="game_id">
+    <column id="304" parent="279" name="game_id">
       <NotNull>1</NotNull>
       <Position>2</Position>
       <StateNumber>1040</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="304" parent="279" name="started_at">
+    <column id="305" parent="279" name="started_at">
       <DefaultExpression>now()</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>3</Position>
@@ -4478,26 +4477,26 @@ ts</ColNames>
       <StoredType>timestamp with time zone|0s</StoredType>
       <TypeId>1184</TypeId>
     </column>
-    <column id="305" parent="279" name="ended_at">
+    <column id="306" parent="279" name="ended_at">
       <Position>4</Position>
       <StateNumber>1040</StateNumber>
       <StoredType>timestamp with time zone|0s</StoredType>
       <TypeId>1184</TypeId>
     </column>
-    <column id="306" parent="279" name="max_players">
+    <column id="307" parent="279" name="max_players">
       <NotNull>1</NotNull>
       <Position>5</Position>
       <StateNumber>1040</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="307" parent="279" name="winner_player">
+    <column id="308" parent="279" name="winner_player">
       <Position>6</Position>
       <StateNumber>1040</StateNumber>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="308" parent="279" name="total_turns">
+    <column id="309" parent="279" name="total_turns">
       <DefaultExpression>0</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>7</Position>
@@ -4505,7 +4504,7 @@ ts</ColNames>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <index id="309" parent="279" name="games_pkey">
+    <index id="310" parent="279" name="games_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>16422</ObjectId>
@@ -4514,7 +4513,7 @@ ts</ColNames>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <index id="310" parent="279" name="games_game_id_key">
+    <index id="311" parent="279" name="games_game_id_key">
       <ColNames>game_id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>16424</ObjectId>
@@ -4525,20 +4524,20 @@ ts</ColNames>
       <CollationIds>100</CollationIds>
       <CollationParentNames>pg_catalog</CollationParentNames>
     </index>
-    <key id="311" parent="279" name="games_pkey">
+    <key id="312" parent="279" name="games_pkey">
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>16423</ObjectId>
       <Primary>1</Primary>
       <StateNumber>1040</StateNumber>
       <UnderlyingIndexId>16422</UnderlyingIndexId>
     </key>
-    <key id="312" parent="279" name="games_game_id_key">
+    <key id="313" parent="279" name="games_game_id_key">
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>16425</ObjectId>
       <StateNumber>1040</StateNumber>
       <UnderlyingIndexId>16424</UnderlyingIndexId>
     </key>
-    <column id="313" parent="280" name="id">
+    <column id="314" parent="280" name="id">
       <DefaultExpression>nextval(&apos;logs_id_seq&apos;::regclass)</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>1</Position>
@@ -4547,7 +4546,7 @@ ts</ColNames>
       <SequenceId>16389</SequenceId>
       <TypeId>20</TypeId>
     </column>
-    <column id="314" parent="280" name="created_at">
+    <column id="315" parent="280" name="created_at">
       <DefaultExpression>now()</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>2</Position>
@@ -4555,56 +4554,56 @@ ts</ColNames>
       <StoredType>timestamp with time zone|0s</StoredType>
       <TypeId>1184</TypeId>
     </column>
-    <column id="315" parent="280" name="level">
+    <column id="316" parent="280" name="level">
       <NotNull>1</NotNull>
       <Position>3</Position>
       <StateNumber>765</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="316" parent="280" name="logger_name">
+    <column id="317" parent="280" name="logger_name">
       <Position>4</Position>
       <StateNumber>765</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="317" parent="280" name="process_name">
+    <column id="318" parent="280" name="process_name">
       <Position>5</Position>
       <StateNumber>765</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="318" parent="280" name="thread_name">
+    <column id="319" parent="280" name="thread_name">
       <Position>6</Position>
       <StateNumber>765</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="319" parent="280" name="message">
+    <column id="320" parent="280" name="message">
       <Position>7</Position>
       <StateNumber>765</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="320" parent="280" name="game_id">
+    <column id="321" parent="280" name="game_id">
       <Position>8</Position>
       <StateNumber>765</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="321" parent="280" name="player_id">
+    <column id="322" parent="280" name="player_id">
       <Position>9</Position>
       <StateNumber>765</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="322" parent="280" name="extra">
+    <column id="323" parent="280" name="extra">
       <Position>10</Position>
       <StateNumber>765</StateNumber>
       <StoredType>jsonb|0s</StoredType>
       <TypeId>3802</TypeId>
     </column>
-    <index id="323" parent="280" name="logs_pkey">
+    <index id="324" parent="280" name="logs_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>16400</ObjectId>
@@ -4613,28 +4612,28 @@ ts</ColNames>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <index id="324" parent="280" name="idx_logs_created_at">
+    <index id="325" parent="280" name="idx_logs_created_at">
       <ColNames>created_at</ColNames>
       <ObjectId>16402</ObjectId>
       <ReverseColNames>created_at</ReverseColNames>
       <StateNumber>765</StateNumber>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <key id="325" parent="280" name="logs_pkey">
+    <key id="326" parent="280" name="logs_pkey">
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>16401</ObjectId>
       <Primary>1</Primary>
       <StateNumber>765</StateNumber>
       <UnderlyingIndexId>16400</UnderlyingIndexId>
     </key>
-    <column id="326" parent="281" name="player_name">
+    <column id="327" parent="281" name="player_name">
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StateNumber>1040</StateNumber>
       <StoredType>text|0s</StoredType>
       <TypeId>25</TypeId>
     </column>
-    <column id="327" parent="281" name="games_played">
+    <column id="328" parent="281" name="games_played">
       <DefaultExpression>0</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>2</Position>
@@ -4642,7 +4641,7 @@ ts</ColNames>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="328" parent="281" name="games_won">
+    <column id="329" parent="281" name="games_won">
       <DefaultExpression>0</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>3</Position>
@@ -4650,7 +4649,7 @@ ts</ColNames>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="329" parent="281" name="total_turns">
+    <column id="330" parent="281" name="total_turns">
       <DefaultExpression>0</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>4</Position>
@@ -4658,7 +4657,7 @@ ts</ColNames>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <column id="330" parent="281" name="total_cards_played">
+    <column id="331" parent="281" name="total_cards_played">
       <DefaultExpression>0</DefaultExpression>
       <NotNull>1</NotNull>
       <Position>5</Position>
@@ -4666,7 +4665,7 @@ ts</ColNames>
       <StoredType>integer|0s</StoredType>
       <TypeId>23</TypeId>
     </column>
-    <index id="331" parent="281" name="player_stats_pkey">
+    <index id="332" parent="281" name="player_stats_pkey">
       <ColNames>player_name</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>16460</ObjectId>
@@ -4678,7 +4677,7 @@ ts</ColNames>
       <CollationIds>100</CollationIds>
       <CollationParentNames>pg_catalog</CollationParentNames>
     </index>
-    <key id="332" parent="281" name="player_stats_pkey">
+    <key id="333" parent="281" name="player_stats_pkey">
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>16461</ObjectId>
       <Primary>1</Primary>

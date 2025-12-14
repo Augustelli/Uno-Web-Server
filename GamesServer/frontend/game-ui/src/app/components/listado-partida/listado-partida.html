@@ -1,0 +1,107 @@
+<div class="p-4 border-b border-border-dark">
+  <div class="flex items-center gap-2 mb-3">
+    <button
+      type="button"
+      class="inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-medium bg-surface-highlight text-text-secondary hover:text-white"
+      (click)="onRefresh()"
+      [disabled]="loading"
+    >
+      <span class="material-symbols-outlined text-[14px] mr-1"> refresh </span>
+      {{ loading ? 'Cargando...' : 'Actualizar' }}
+    </button>
+
+    <label class="flex items-center gap-1 text-xs text-text-secondary">
+      Límite:
+      <input
+        type="number"
+        min="1"
+        max="200"
+        class="w-16 bg-transparent border border-border-dark rounded-full px-2 py-0.5 text-xs"
+        [value]="limit"
+        (input)="onLimitInput($any($event.target).value)"
+      />
+    </label>
+
+    <label class="flex items-center gap-1 text-xs text-text-secondary ml-auto cursor-pointer">
+      <input
+        type="checkbox"
+        class="rounded border-border-dark bg-transparent"
+        [checked]="onlyFinished"
+        (change)="onOnlyFinishedToggle($any($event.target).checked)"
+      />
+      Solo terminadas
+    </label>
+  </div>
+  <div
+    class="flex w-full items-stretch rounded-xl h-10 bg-surface-highlight/50 focus-within:bg-surface-highlight transition-colors"
+  >
+    <div class="text-text-secondary flex items-center justify-center pl-3 pr-2">
+      <span class="material-symbols-outlined text-[18px]">search</span>
+    </div>
+    <input
+      [(ngModel)]="searchText"
+      class="flex w-full min-w-0 flex-1 resize-none bg-transparent text-white focus:outline-0 placeholder:text-text-secondary/70 px-2 text-xs"
+      placeholder="Filtrar por ID..."
+    />
+  </div>
+</div>
+<div class="flex-1 overflow-y-auto p-3 space-y-2">
+  <ng-container *ngFor="let game of games">
+    <ng-container
+      *ngIf="!searchText || game.game_id.toLowerCase().includes(searchText.toLowerCase())"
+    >
+      <div
+        class="group cursor-pointer flex items-center gap-4 px-4 py-3 rounded-2xl relative overflow-hidden transition-all"
+        [class.bg-surface-highlight]="isSelected(game)"
+        [class.border]="isSelected(game)"
+        [class.border-primary-40]="isSelected(game)"
+        [class.bg-transparent]="!isSelected(game)"
+        (click)="selectGame(game.game_id)"
+      >
+        <div
+          *ngIf="isSelected(game)"
+          class="absolute left-0 top-0 bottom-0 w-1 bg-primary"
+        ></div>
+
+        <div
+          class="flex items-center justify-center rounded-full shrink-0 size-10"
+          [ngClass]="game.ended_at ? 'bg-primary/20 text-primary' : 'bg-surface-highlight text-text-secondary'"
+        >
+          <span class="material-symbols-outlined text-[20px]">
+            {{ game.ended_at ? 'trophy' : 'stadia_controller' }}
+          </span>
+        </div>
+
+        <div class="flex flex-col flex-1 min-w-0">
+          <div class="flex justify-between items-baseline mb-0.5">
+            <p
+              class="text-white text-sm font-medium leading-none truncate"
+              [ngClass]="{ 'font-bold': isSelected(game) }"
+            >
+              {{ game.game_id }}
+            </p>
+            <span
+              class="text-[10px] font-medium px-2 py-0.5 rounded-full border"
+              [ngClass]="game.ended_at
+                ? 'text-primary border-primary/50 bg-primary/10'
+                : 'text-text-secondary border-border-dark'"
+            >
+              {{ game.ended_at ? 'Terminado' : 'En curso' }}
+            </span>
+          </div>
+          <p class="text-text-secondary/80 text-[11px] leading-normal truncate flex items-center gap-1">
+            <span class="material-symbols-outlined text-[11px]">schedule</span>
+            {{ game.started_at | date : 'short' }} · Turnos: {{ game.total_turns }} · Máx:
+            {{ game.max_players }}
+          </p>
+        </div>
+
+        <div class="shrink-0 text-text-secondary">
+          <span class="material-symbols-outlined text-[18px]">
+            {{ isSelected(game) ? 'chevron_right' : 'chevron_right' }}
+          </span>
+        </div>
+      </div>
+    </ng-container>
+  </ng-container>
+</div>

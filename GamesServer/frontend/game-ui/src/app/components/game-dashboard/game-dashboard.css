@@ -1,0 +1,273 @@
+.page {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  min-height: 100vh;
+  background: #0f172a;
+  color: #e5e7eb;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  background: #111827;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #1f2937;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+header span {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+main {
+  flex: 1;
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: 1.2fr 1.5fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  main {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: #111827;
+  border-radius: 0.75rem;
+  border: 1px solid #1f2937;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.card h2 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.card h2 span {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  font-weight: normal;
+}
+
+label {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+input[type="number"],
+textarea {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #374151;
+  background: #020617;
+  color: #e5e7eb;
+  font-size: 0.9rem;
+}
+
+textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: #22c55e;
+  color: #022c22;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+  margin-bottom: 0.75rem;
+}
+
+.toolbar-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+}
+
+.games-list {
+  border-radius: 0.5rem;
+  border: 1px solid #1f2937;
+  overflow: hidden;
+  max-height: 360px;
+  overflow-y: auto;
+  background: #020617;
+}
+
+.game-row {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #111827;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.85rem;
+}
+
+.game-row:last-child {
+  border-bottom: none;
+}
+
+.game-row:hover {
+  background: #0b1120;
+}
+
+.game-row.selected {
+  background: #1d283a;
+  border-left: 3px solid #22c55e;
+  padding-left: 0.55rem;
+}
+
+.game-row span.meta {
+  color: #9ca3af;
+  font-size: 0.8rem;
+}
+
+.empty-row {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: #111827;
+  border: 1px solid #1f2937;
+  color: #9ca3af;
+}
+
+.chip.finished {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.5);
+  color: #4ade80;
+}
+
+.chip.running {
+  background: rgba(250, 204, 21, 0.1);
+  border-color: rgba(250, 204, 21, 0.5);
+  color: #facc15;
+}
+
+.section-title {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4rem;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem 1rem;
+  font-size: 0.85rem;
+}
+
+.details-label {
+  color: #9ca3af;
+}
+
+.details-value {
+  color: #e5e7eb;
+}
+
+.events {
+  margin-top: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #1f2937;
+  background: #020617;
+  max-height: 220px;
+  overflow-y: auto;
+  font-size: 0.8rem;
+}
+
+.event-row {
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid #0f172a;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.event-row:last-child {
+  border-bottom: none;
+}
+
+.event-meta {
+  color: #9ca3af;
+}
+
+.event-main {
+  color: #e5e7eb;
+}
+
+.analysis-output {
+  margin-top: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #1f2937;
+  background: #020617;
+  padding: 0.6rem 0.8rem;
+  white-space: pre-wrap;
+  font-size: 0.85rem;
+}
+
+.status-bar {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  min-height: 1em;
+}
+
+.status-bar.error {
+  color: #f97373;
+}
+
+.hint {
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.section {
+  margin-top: 0.75rem;
+}

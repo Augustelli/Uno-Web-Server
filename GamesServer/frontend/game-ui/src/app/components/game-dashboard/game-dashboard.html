@@ -1,0 +1,123 @@
+<div class="page">
+  <header class="header">
+    <h1>UNO – Analizador de partidas</h1>
+  </header>
+
+  <main class="layout">
+    <!-- Columna izquierda: partidas -->
+    <section class="card">
+      <h2>Partidas</h2>
+
+      <div class="filters">
+        <div class="field">
+          <label>Límite</label>
+          <input type="number" min="1" max="200" [(ngModel)]="limit" />
+        </div>
+        <div class="field checkbox">
+          <label>
+            <input type="checkbox" [(ngModel)]="onlyFinished" />
+            Solo terminadas
+          </label>
+        </div>
+        <button (click)="loadGames()" [disabled]="gamesLoading">
+          {{ gamesLoading ? 'Cargando...' : 'Actualizar' }}
+        </button>
+      </div>
+
+      <div class="games-list">
+        <div *ngIf="!gamesLoading && games.length === 0" class="empty">
+          No hay partidas registradas.
+        </div>
+
+        <div
+          *ngFor="let g of games"
+          class="game-row"
+          [class.selected]="isSelected(g)"
+          (click)="selectGame(g)"
+        >
+          <div class="game-id">{{ g.game_id }}</div>
+          <div class="game-meta">
+            <span>{{ g.started_at | date: 'short' }}</span>
+            <span> · </span>
+            <span>{{ g.ended_at ? 'Terminado' : 'En curso' }}</span>
+            <span> · </span>
+            <span>Turnos: {{ g.total_turns }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="status" *ngIf="gamesInfo">{{ gamesInfo }}</div>
+      <div class="status error" *ngIf="gamesError">{{ gamesError }}</div>
+    </section>
+
+    <!-- Columna derecha: detalles y análisis -->
+    <section class="card">
+      <h2>Detalles y análisis</h2>
+
+      <div *ngIf="detailsLoading">Cargando detalles de la partida...</div>
+
+      <div *ngIf="!detailsLoading && !selectedGame" class="hint">
+        Selecciona una partida de la lista para ver sus eventos
+        y hacer un nuevo análisis con el modelo.
+      </div>
+
+      <div *ngIf="selectedGame && !detailsLoading">
+        <h3>Partida {{ selectedGame.game_id }}</h3>
+        <p class="info-line">
+          Inicio: {{ selectedGame.started_at | date: 'short' }} ·
+          Fin:
+          {{
+            selectedGame.ended_at ? (selectedGame.ended_at | date: 'short') : 'En curso'
+          }} ·
+          Jugadores máx.: {{ selectedGame.max_players }} ·
+          Turnos: {{ selectedGame.total_turns }}
+        </p>
+
+        <h4>Eventos</h4>
+        <div class="events">
+          <div
+            *ngIf="!selectedGame.events || selectedGame.events.length === 0"
+            class="event-row"
+          >
+            Sin eventos registrados.
+          </div>
+
+          <div
+            *ngFor="let ev of selectedGame.events"
+            class="event-row"
+          >
+            <div class="event-ts">{{ ev.ts | date: 'short' }}</div>
+            <div class="event-main">
+              event={{ ev.event_type }}
+              <span *ngIf="ev.player_id != null">, player_id={{ ev.player_id }}</span>
+              <span *ngIf="ev.player_name">, name={{ ev.player_name }}</span>
+              <span *ngIf="ev.card">, card={{ ev.card }}</span>
+            </div>
+          </div>
+        </div>
+
+        <h4>Nuevo análisis</h4>
+        <label>Pregunta para el modelo:</label>
+        <textarea
+          [(ngModel)]="analysisQuestion"
+          placeholder="Ej: Resume brevemente la partida y dime quién jugó mejor."
+        ></textarea>
+
+        <button (click)="runAnalysis()" [disabled]="analyzing">
+          {{ analyzing ? 'Analizando...' : 'Analizar partida' }}
+        </button>
+
+        <div class="status" *ngIf="analysisStatus && !analysisError">
+          {{ analysisStatus }}
+        </div>
+        <div class="status error" *ngIf="analysisError">
+          {{ analysisError }}
+        </div>
+
+        <div class="analysis-output" *ngIf="analysisOutput">
+          {{ analysisOutput }}
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

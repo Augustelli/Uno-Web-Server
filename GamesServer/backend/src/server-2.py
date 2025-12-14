@@ -5,8 +5,8 @@ from typing import List, Optional
 import asyncpg
 import httpx
 from fastapi import FastAPI, HTTPException, Body, Query
+from fastapi.middleware import cors
 from pydantic import BaseModel
-from config import DB_DSN
 
 # =========================
 # Configuración
@@ -19,6 +19,13 @@ app = FastAPI(title="UNO Analytics API", version="1.0.0")
 
 # Pool global de conexiones asyncpg
 db_pool: Optional[asyncpg.Pool] = None
+app.add_middleware(
+    cors.CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 
 # =========================
@@ -42,6 +49,12 @@ class GameSummary(BaseModel):
     winner_player: Optional[int]
     total_turns: int
 
+class GameAnalysisEntry(BaseModel):
+    question: str
+    answer: str
+    model: Optional[str]
+    created_at: Optional[str]
+
 
 class GameDetails(BaseModel):
     game_id: str
@@ -51,10 +64,12 @@ class GameDetails(BaseModel):
     winner_player: Optional[int]
     total_turns: int
     events: List[GameEvent]
+    analyses: List[GameAnalysisEntry]
 
 
 class AnalysisRequest(BaseModel):
     question: str
+
 
 
 class AnalysisResponse(BaseModel):
@@ -76,7 +91,7 @@ async def startup_event():
         user='postgres',
         password='Sup3rSecret0',
         min_size=1,
-        max_size=5
+        max_size=20
     )
     print("[analysis_api] DB pool creado")
 
@@ -123,26 +138,39 @@ async def fetch_game_details(game_id: str) -> GameDetails:
             game_id,
         )
 
-    events: List[GameEvent] = []
-    for r in event_rows:
-        extra = r["extra"]
-        if isinstance(extra, str):
-            # por si extra está guardado como texto JSON
-            try:
-                extra = json.loads(extra)
-            except Exception:
-                extra = {"raw": extra}
-        events.append(
-            GameEvent(
-                ts=r["ts"].isoformat() if r["ts"] is not None else "",
-                player_id=r["player_id"],
-                player_name=r["player_name"],
-                event_type=r["event_type"],
-                card=r["card"],
-                extra=extra,
+        events: List[GameEvent] = []
+        for r in event_rows:
+            extra = r["extra"]
+            if isinstance(extra, str):
+                # por si extra está guardado como texto JSON
+                try:
+                    extra = json.loads(extra)
+                except Exception:
+                    extra = {"raw": extra}
+            events.append(
+                GameEvent(
+                    ts=r["ts"].isoformat() if r["ts"] is not None else "",
+                    player_id=r["player_id"],
+                    player_name=r["player_name"],
+                    event_type=r["event_type"],
+                    card=r["card"],
+                    extra=extra,
+                )
             )
+        ia_rows = await conn.fetch(
+            "SELECT question, answer, model, created_at FROM game_analysis WHERE game_id = $1 ORDER BY created_at DESC",
+            game_id,
         )
-
+        analyses: List[GameAnalysisEntry] = []
+        for r in ia_rows:
+            analyses.append(
+                GameAnalysisEntry(
+                    question=r["question"],
+                    answer=r["answer"],
+                    model=r.get("model"),
+                    created_at=r["created_at"].isoformat() if r["created_at"] else None,
+                )
+            )
     return GameDetails(
         game_id=game_row["game_id"],
         started_at=game_row["started_at"].isoformat() if game_row["started_at"] else None,
@@ -151,6 +179,7 @@ async def fetch_game_details(game_id: str) -> GameDetails:
         winner_player=game_row["winner_player"],
         total_turns=game_row["total_turns"] or 0,
         events=events,
+        analyses=analyses,
     )
 
 
@@ -219,7 +248,7 @@ async def call_llm(prompt: str) -> str:
             "max_tokens": 512,
             "stream": False,
         }
-        headers = {"Content-Type": "application/json", "Authorization" : "Bearer EMPTY"}
+        headers = {"Content-Type": "application/json", "Authorization": "Bearer EMPTY"}
         resp = await client.post(LLM_URL, json=payload, headers=headers)
         if resp.status_code != 200:
             raise HTTPException(
@@ -236,17 +265,7 @@ async def call_llm(prompt: str) -> str:
 
 async def save_analysis(game_id: str, question: str, analysis: str) -> None:
     """
-    Guarda el análisis en la DB en una tabla simple game_analyses.
-    Si aún no existe la tabla, deberías crearla con algo como:
-
-    CREATE TABLE IF NOT EXISTS game_analyses (
-        id          SERIAL PRIMARY KEY,
-        game_id     TEXT NOT NULL,
-        question    TEXT NOT NULL,
-        analysis    TEXT NOT NULL,
-        created_at  TIMESTAMPTZ DEFAULT NOW()
-    );
-
+    Guarda el análisis en la DB en una tabla simple game_analysis
     """
     if db_pool is None:
         raise RuntimeError("DB pool no inicializado")
@@ -254,18 +273,19 @@ async def save_analysis(game_id: str, question: str, analysis: str) -> None:
     async with db_pool.acquire() as conn:
         await conn.execute(
             """
-            INSERT INTO game_analyses (game_id, question, analysis)
-            VALUES ($1, $2, $3)
+            INSERT INTO game_analysis (game_id, question, answer, model)
+            VALUES ($1, $2, $3, $4)
             """,
             game_id,
             question,
             analysis,
+            LLM_MODEL,
         )
+
 
 # =========================
 # Endpoints
 # =========================
-
 
 
 @app.get("/games/{game_id}", response_model=GameDetails)
@@ -307,10 +327,12 @@ async def analyze_game(game_id: str, body: AnalysisRequest = Body(...)):
         question=body.question,
         analysis=analysis_text,
     )
+
+
 @app.get("/games", response_model=List[GameSummary])
 async def list_games(
-    limit: int = Query(20, ge=1, le=200),
-    only_finished: bool = Query(False, description="Si es true, solo partidas finalizadas"),
+        limit: int = Query(20, ge=1, le=200),
+        only_finished: bool = Query(False, description="Si es true, solo partidas finalizadas"),
 ):
     """
     Lista partidas almacenadas en la base de datos.
