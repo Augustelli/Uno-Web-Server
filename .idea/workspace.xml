@@ -5,11 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="22d42244-dec7-42bb-9b7f-9ee5bd23a462" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/data_source_mapping.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/data_source_mapping.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/sqldialects.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/sqldialects.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GamesServer/backend/src/server-2.py" beforeDir="false" afterPath="$PROJECT_DIR$/GamesServer/backend/src/server-2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GamesServer/frontend/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/app/app.html" beforeDir="false" afterPath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/app/app.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/app/components/listado-partida/listado-partida.html" beforeDir="false" afterPath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/app/components/listado-partida/listado-partida.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/app/components/listado-partida/listado-partida.ts" beforeDir="false" afterPath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/app/components/listado-partida/listado-partida.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -311,7 +311,7 @@
       <workItem from="1756825877469" duration="3446000" />
       <workItem from="1765486957265" duration="6724000" />
       <workItem from="1765633810017" duration="8288000" />
-      <workItem from="1765744175212" duration="9541000" />
+      <workItem from="1765744175212" duration="10851000" />
     </task>
     <servers />
   </component>

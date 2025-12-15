@@ -19,7 +19,7 @@ export class ListadoPartida {
   @Input() games: GameSummary[] = [];
   @Input() loading = false;
   @Input() error = '';
-  @Input() limit = 20;
+  @Input() limit = 0;
   @Input() onlyFinished = false;
   @Input() selectedGameId: string | null = null;
 
@@ -32,7 +32,7 @@ export class ListadoPartida {
 
   onLimitInput(v: string) {
     const n = parseInt(v, 10);
-    this.limitChange.emit(Number.isFinite(n) && n > 0 ? n : 20);
+    this.limitChange.emit(Number.isFinite(n) && n >= 0 ? n : 20);
   }
 
   onOnlyFinishedToggle(v: boolean) {
