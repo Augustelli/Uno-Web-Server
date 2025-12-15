@@ -14,6 +14,7 @@ COPY src/game.py /app/
 COPY src/logger.py /app/
 COPY src/config.py /app/
 COPY src/server.py /app/
+COPY src/analytics.py /app/
 COPY src/utils.py /app/
 
 EXPOSE 8000

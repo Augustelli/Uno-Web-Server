@@ -3,13 +3,11 @@ import json
 import sys
 from multiprocessing import Queue, Process
 from typing import Any, Dict, Optional, Tuple, List
-
 import requests
 from psycopg_pool import ConnectionPool
 
 from config import VLLM_MODEL_NAME, VLLM_CHAT_URL
 
-# Pool global para reutilizar conexiones a Postgres
 _pool: Optional[ConnectionPool] = None
 
 

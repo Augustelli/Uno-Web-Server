@@ -20,7 +20,7 @@ PORT = _int("PORT", 8000)
 MIN_PLAYERS = _int("MIN_PLAYERS", 2)
 MAX_PLAYERS = _int("MAX_PLAYERS", 10)
 TURN_TIMEOUT = _int("TURN_TIMEOUT", 120)
-HOST = _str("HOST", "127.0.0.1")
+HOST = _str("HOST", "0.0.0.0")
 CARDS_NUMBER = _int("CARDS_NUMBER", 2)
 LOG_DB_DSN = _str("LOG_DB_DSN", "dbname=game_db user=postgres password=Sup3rSecret0 host=localhost port=5432")
 DB_TABLE_CREATION_QUERY = """

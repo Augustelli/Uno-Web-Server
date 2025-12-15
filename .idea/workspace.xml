@@ -6,12 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="22d42244-dec7-42bb-9b7f-9ee5bd23a462" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GamesServer/backend/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/GamesServer/backend/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GamesServer/backend/src/config.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GamesServer/backend/src/server-2.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GamesServer/backend/src/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/GamesServer/backend/src/server.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/environments/environment.ts" beforeDir="false" afterPath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/environments/environment.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UnoServer/deployment/docker-compose-db.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/UnoServer/deployment/docker-compose-db.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UnoServer/deployment/Dockerfile.server" beforeDir="false" afterPath="$PROJECT_DIR$/UnoServer/deployment/Dockerfile.server" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UnoServer/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/UnoServer/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UnoServer/src/analytics.py" beforeDir="false" afterPath="$PROJECT_DIR$/UnoServer/src/analytics.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UnoServer/src/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/UnoServer/src/config.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -319,7 +317,7 @@
       <workItem from="1765486957265" duration="6724000" />
       <workItem from="1765633810017" duration="8288000" />
       <workItem from="1765744175212" duration="12477000" />
-      <workItem from="1765804581238" duration="10329000" />
+      <workItem from="1765804581238" duration="12339000" />
     </task>
     <servers />
   </component>
