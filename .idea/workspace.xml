@@ -6,10 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="22d42244-dec7-42bb-9b7f-9ee5bd23a462" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/app/app.html" beforeDir="false" afterPath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/app/app.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/app/components/listado-partida/listado-partida.html" beforeDir="false" afterPath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/app/components/listado-partida/listado-partida.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/app/components/listado-partida/listado-partida.ts" beforeDir="false" afterPath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/app/components/listado-partida/listado-partida.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GamesServer/backend/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/GamesServer/backend/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GamesServer/backend/src/config.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GamesServer/backend/src/server-2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GamesServer/backend/src/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/GamesServer/backend/src/server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/environments/environment.ts" beforeDir="false" afterPath="$PROJECT_DIR$/GamesServer/frontend/game-ui/src/environments/environment.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UnoServer/deployment/docker-compose-db.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/UnoServer/deployment/docker-compose-db.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,6 +40,10 @@
     &quot;accountId&quot;: &quot;93fd3a3f-71cd-403f-91b0-aa0aa5ae0006&quot;
   }
 }</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/GamesServer/frontend/game-ui/node_modules/@angular/core/types/_discovery-chunk.d.ts" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/GamesServer/frontend/game-ui/node_modules/typescript/lib/lib.es5.d.ts" root0="SKIP_INSPECTION" />
+  </component>
   <component name="HttpClientOnboardingState">{
   &quot;isOnboardingCommentShown&quot;: true
 }</component>
@@ -53,54 +59,55 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Makefile Target.run-client.executor&quot;: &quot;Run&quot;,
-    &quot;Makefile Target.run-docker-server.executor&quot;: &quot;Run&quot;,
-    &quot;Makefile Target.run-server.executor&quot;: &quot;Run&quot;,
-    &quot;Makefile Target.run.executor&quot;: &quot;Run&quot;,
-    &quot;Makefile Target.stop-docker.executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python.client_1.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.client_2.executor&quot;: &quot;Debug&quot;,
-    &quot;Python.logger.executor&quot;: &quot;Run&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.scratch_1.executor&quot;: &quot;Run&quot;,
-    &quot;Python.server.executor&quot;: &quot;Debug&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;develop&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/augustelli/PycharmProjects/Uno-Web-Server/UnoServer/src&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;terminal&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;/home/augustelli/PycharmProjects/Uno-Web-Server/GamesServer/frontend/game-ui/node_modules/typescript/lib&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Makefile Target.run-client.executor": "Run",
+    "Makefile Target.run-docker-server.executor": "Run",
+    "Makefile Target.run-server.executor": "Run",
+    "Makefile Target.run.executor": "Run",
+    "Makefile Target.stop-docker.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.client_1.executor": "Debug",
+    "Python.client_2.executor": "Debug",
+    "Python.logger.executor": "Run",
+    "Python.main.executor": "Run",
+    "Python.scratch_1.executor": "Run",
+    "Python.server.executor": "Debug",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "develop",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/home/augustelli/PycharmProjects/Uno-Web-Server/GamesServer/frontend/game-ui",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "terminal",
+    "ts.external.directory.path": "/home/augustelli/PycharmProjects/Uno-Web-Server/GamesServer/frontend/game-ui/node_modules/typescript/lib",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;DatabaseDriversLRU&quot;: [
-      &quot;postgresql&quot;
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql"
     ],
-    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
-      &quot;Python&quot;,
-      &quot;JSON&quot;,
-      &quot;HTTP Request&quot;
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "Python",
+      "JSON",
+      "HTTP Request"
     ]
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/GamesServer/frontend/game-ui" />
+      <recent name="$PROJECT_DIR$/docs" />
       <recent name="$PROJECT_DIR$/GamesServer/backend/src" />
       <recent name="$PROJECT_DIR$/GamesServer" />
       <recent name="$PROJECT_DIR$/deployment" />
-      <recent name="$PROJECT_DIR$" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/GamesServer/frontend/game-ui/src" />
@@ -311,7 +318,8 @@
       <workItem from="1756825877469" duration="3446000" />
       <workItem from="1765486957265" duration="6724000" />
       <workItem from="1765633810017" duration="8288000" />
-      <workItem from="1765744175212" duration="10851000" />
+      <workItem from="1765744175212" duration="12477000" />
+      <workItem from="1765804581238" duration="10329000" />
     </task>
     <servers />
   </component>

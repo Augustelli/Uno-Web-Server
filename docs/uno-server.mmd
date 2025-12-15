@@ -1,0 +1,78 @@
+flowchart LR
+    %% =========================
+    %% CLIENTES CLI Y SERVIDOR UNO
+    %% =========================
+    subgraph Clients["Clientes CLI de UNO"]
+        C1["Cliente CLI\nJugador 1"]
+        C2["Cliente CLI\nJugador 2"]
+        Cn["Cliente CLI\nJugador N"]
+    end
+
+    subgraph UnoServer["Servidor UNO (Python, sockets TCP)"]
+        direction TB
+
+        GM["GameManager\n- crea partidas\n- mantiene juegos\n- arranca hilos Game"]
+
+        subgraph ClientThreads["Hilos por cliente"]
+            direction TB
+            CH1["ClientHandler\n(thread)\nJugador 1"]
+            CH2["ClientHandler\n(thread)\nJugador 2"]
+            CHn["ClientHandler\n(thread)\nJugador N"]
+        end
+
+        subgraph GameThreads["Partidas activas (un hilo por partida)"]
+            direction TB
+            G1["Game #1\n(start_game loop)\ncola de acciones"]
+            G2["Game #2\n(start_game loop)\ncola de acciones"]
+            Gn["Game #N\n(start_game loop)\ncola de acciones"]
+        end
+    end
+
+    %% =========================
+    %% COLA + PROCESOS DE LOG / ANALÍTICA
+    %% =========================
+    subgraph IPC["Procesos de logging / analítica (multiprocessing)"]
+        direction TB
+        Q["multiprocessing.Queue\n(eventos de juego)"]
+
+        LoggerProc["Proceso logger\n- guarda eventos en DB"]
+
+        AnalyticsProc["Proceso analytics\n- stats jugadores\n- análisis LLM\n- guarda resultados"]
+    end
+
+    LLM["Servidor LLM / vLLM\n(API tipo OpenAI)"]
+
+    DB[(PostgreSQL\n- games\n- game_events\n- player_stats\n- game_analyses)]
+
+    %% =========================
+    %% CONEXIONES
+    %% =========================
+    %% Clientes TCP <-> ClientHandler
+    C1 <--> CH1
+    C2 <--> CH2
+    Cn <--> CHn
+
+    %% ClientHandlers hablan con GameManager (crear/unir) y con Games (acciones)
+    CH1 --> GM
+    CH2 --> GM
+    CHn --> GM
+
+    GM --> G1
+    GM --> G2
+    GM --> Gn
+
+    %% Games envían eventos a la Queue compartida
+    G1 -->|eventos de juego| Q
+    G2 -->|eventos de juego| Q
+    Gn -->|eventos de juego| Q
+
+    %% Queue es consumida por Logger y Analytics
+    Q --> LoggerProc
+    Q --> AnalyticsProc
+
+    %% Logger escribe en la DB
+    LoggerProc --> DB
+
+    %% Analytics también lee/escribe DB y llama al LLM
+    AnalyticsProc --> DB
+    AnalyticsProc <--> LLM

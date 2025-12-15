@@ -1,0 +1,25 @@
+flowchart LR
+    subgraph Frontend["Frontend Web"]
+        UI["SPA Angular"]
+    end
+
+    subgraph Backend["Backend de análisis - (FastAPI async)"]
+        API["REST API"]
+    end
+
+    DB[(PostgreSQL - game_db)]
+
+    LLM["Servidor LLM / vLLM\n(OpenAI-compatible API)"]
+
+    %% Conexiones principales
+    UI -->|HTTP JSON| API
+    API -->|SELECT/INSERT| DB
+    API <-->|contexto partida + pregunta| LLM
+    LLM -->|texto análisis| API
+
+    %% Nota: runtime del juego también escribe en DB
+    subgraph UnoRuntime["Servidor UNO + procesos logging/analytics"]
+        RuntimeDB["Game + logger + analytics\n(escriben en DB)"]
+    end
+
+    RuntimeDB --> DB

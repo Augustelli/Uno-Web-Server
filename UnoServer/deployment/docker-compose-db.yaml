@@ -77,7 +77,6 @@ services:
     environment:
       - VLLM_HOST=0.0.0.0
       - VLLM_PORT=8000
-      #- HUGGING_FACE_HUB_TOKEN=<TOKEN_HF>
     command: [
       "--model", "Qwen/Qwen2.5-1.5B-Instruct",
       "--host", "0.0.0.0",
@@ -107,29 +106,10 @@ services:
               count: all
               capabilities: [ gpu ]
 
-#  n8n:
-#    image: docker.n8n.io/n8nio/n8n
-#    container_name: n8n
-#    depends_on:
-#      - db
-#    ports:
-#      - 5678:5678
-#    volumes:
-#      - n8n_data:/home/node/.n8n
-#    environment:
-#      DB_TYPE: postgresdb
-#      DB_POSTGRESDB_DATABASE: n8n
-#      DB_POSTGRESDB_HOST: db
-#      DB_POSTGRESDB_PORT: 5432
-#      DB_POSTGRESDB_USER: postgres
-#      DB_POSTGRESDB_PASSWORD: Sup3rSecret0
-
-
 volumes:
     postgres-data:
     prometheus-data:
     grafana-data:
-#    n8n_data:
 networks:
   default:
     name: uno-network

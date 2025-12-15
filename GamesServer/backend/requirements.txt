@@ -1,1 +1,5 @@
-install fastapi uvicorn psycopg[binary] httpx
+fastapi==0.124.0
+uvicorn==0.38.0
+psycopg[binary]==3.2.13
+httpx==0.28.1
+asyncpg==0.31.0

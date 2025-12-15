@@ -1,0 +1,70 @@
+services:
+  backend:
+    extends:
+      service: backend
+      file: ../GamesServer/deployment/docker-compose.yaml
+    networks:
+      - default
+  frontend:
+    networks:
+      - default
+    extends:
+      service: frontend
+      file: ../GamesServer/deployment/docker-compose.yaml
+
+  server:
+    networks:
+      - default
+    extends:
+      service: server
+      file: ../UnoServer/deployment/docker-compose.yaml
+  db:
+    networks:
+      - default
+    extends:
+      service: db
+      file: ../UnoServer/deployment/docker-compose-db.yaml
+
+  postgres-exporter:
+    networks:
+      - default
+    extends:
+      service: postgres-exporter
+      file: ../UnoServer/deployment/docker-compose-db.yaml
+
+  adminer:
+    networks:
+      - default
+    extends:
+      service: adminer
+      file: ../UnoServer/deployment/docker-compose-db.yaml
+
+  grafana:
+    networks:
+      - default
+    extends:
+      service: grafana
+      file: ../UnoServer/deployment/docker-compose-db.yaml
+
+  prometheus:
+    networks:
+      - default
+    extends:
+      service: prometheus
+      file: ../UnoServer/deployment/docker-compose-db.yaml
+
+  vllm:
+    networks:
+      - default
+    extends:
+      service: vllm
+      file: ../UnoServer/deployment/docker-compose-db.yaml
+
+volumes:
+  postgres-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  default:
+    name: uno-network
